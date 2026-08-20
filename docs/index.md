@@ -1,40 +1,20 @@
-﻿![Tiet Logo](assets/tiet-logo.svg){ .tiet-logo }
+﻿# SHARP — Smart Hostel Administration and Resource Platform
 
-**UCS503: Software Engineering (Project)**  
-**TIET Patiala**
+SHARP is a centralized platform for managing hostel administration and resource-management workflows.
 
-# The Sum Function in C++
+## Modules
 
-**Author(s)**:
+* Leave & Visitor Management
+* Mess Management
+* Room Allotment
+* Maintenance Complaints
+* Laundry Feedback & Tracking
 
-`(RGB)` Raghav B. Venkataramaiyer `<bv.raghav -at-
-thapar -dot- edu>`
+## Team
 
-This project creates a sum function in c++ as a sample
-to illustrate how to compile a shared library and
-distribute it for use along with the binary.
+* Vaibhav Kansal — 1024160097
+* Ayush Kamboj — 1024160118
+* Ali Ekram — 1024160138
+* Riya Gupta — 1024160122
 
-## Installation
-
-``` shell
-make -C code
-```
-
-This will create create a folder `dist` in `code`
-folder, with following contents
-
-```
-dist
- +-lib
- |  \-libbvr_math.so
- +-bin
-    \-run
-```
-
-## Usage
-
-``` shell
-cd code
-export LD_LIBRARY_PATH=dist/lib
-./dist/bin/run
-```
+**UCS503P Software Engineering Project — 2026–27 ODD**

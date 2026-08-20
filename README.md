@@ -1,45 +1,30 @@
-# UCS503P Project Template
+# SHARP — Smart Hostel Administration and Resource Platform
 
-This is a project template for UCS503P Project (2026-27
-ODD). 
+SHARP is a centralized web platform designed to digitize and streamline common hostel administration and resource-management workflows.
 
-There are 3 reports in LaTeX format, namely *a*)
-Project Proposal, *b*) Project Report Prototype Stage,
-and *c*) Project Report Final -- each in their
-respective folders.
+The platform brings together **leave and visitor management, mess management, room allotment, maintenance complaints, and laundry feedback** into a single system with improved traceability and accountability.
 
-Journals are stacked under the folder `journals`, one
-folder for each team member.  A sample entry has been
-made for example.
+## Core Modules
 
-The source code is contained within the folder `code`.
+* **Leave & Visitor Management** — Digital leave requests, parent verification, warden approval, and digital passes.
+* **Mess Management** — Categorized feedback, special meal requests, and feedback tracking.
+* **Room Allotment** — Temporary room reservations and cluster-based allotment.
+* **Maintenance** — Complaint tracking, caretaker assignment, SLA escalation, and student verification.
+* **Laundry Feedback & Tracking** — Reporting and tracking lost or damaged clothes and identifying recurring laundry issues.
 
-The documentation is under folder `docs`.
+## Team
 
-All other aspects of code organisation are left to the
-discretion of the user(s).
+| Name           | Roll No.   |
+| -------------- | ---------- |
+| Vaibhav Kansal | 1024160097 |
+| Ayush Kamboj   | 1024160118 |
+| Ali Ekram      | 1024160138 |
+| Riya Gupta     | 1024160122 |
 
+## Project
 
-## Docs
+**Course:** UCS503P — Software Engineering Project
+**Session:** 2026–27 ODD
+**Institution:** Thapar Institute of Engineering and Technology
 
-As of now, the `docs` is just an organised collection
-of markdown (`md`) files.  But the build procedure is
-using [`mkdocs`](https://google.com/search?q=mkdocs)
-backend.  As a result, any commit into the `master`
-branch of github repository would result in CI/CD based
-build and deployment of the documentation including the
-journals.
-
-For a local DEV-version of the docs for viewing and
-testing, install the local env and issue the following
-command:
-
-``` shell
-make docs
-```
-
-### Local `env` for `docs`
-
-``` shell
-
-```
+> The repository will be expanded with source code, documentation, development journals, testing, and implementation details as the project progresses.
