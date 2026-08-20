@@ -38,13 +38,13 @@
 \textit{Thapar Institute of Engineering and Technology}\\
 Patiala, India}
 \and
-\IEEEauthorblockN{Riya Gupta}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160122} \\
+\IEEEauthorblockN{Vaibhav Kansal}
+\IEEEauthorblockA{\textit{CSED, Roll No. 1024160097} \\
 \textit{Thapar Institute of Engineering and Technology}\\
 Patiala, India}
 \and
-\IEEEauthorblockN{Vaibhav Kansal}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160097} \\
+\IEEEauthorblockN{Riya Gupta}
+\IEEEauthorblockA{\textit{CSED, Roll No. 1024160122} \\
 \textit{Thapar Institute of Engineering and Technology}\\
 Patiala, India}
 \and
@@ -64,22 +64,21 @@ processes---leave and visitor passes, mess feedback, room allotment, maintenance
 and laundry---behind role-based workflows for students, parents, wardens, caretakers, mess
 staff and laundry staff. The goal is not digitisation alone but traceability and
 accountability: complaints close only on student verification, room reservations expire
-automatically, laundry batches are tracked by reusable QR identity, and mess feedback stays
-anonymous to mess staff while remaining auditable.
+automatically, laundry issues are logged against each submission so recurring problems surface
+in the data, and mess feedback stays anonymous to mess staff while remaining auditable.
 \end{abstract}
 
 \begin{IEEEkeywords}
 hostel management, workflow automation, role-based access control, SLA escalation,
-QR tracking, web application
+issue reporting, web application
 \end{IEEEkeywords}
 
 \section{Introduction}
-Several routine hostel processes are partially manual or lack tracking, so requests move
-through paper, phone calls and registers without an auditable trail: leave approvals are
+Several routine hostel processes are partially manual or lack tracking: leave approvals are
 delayed, complaint status is unknown, clusters break under staggered fee payment, and laundry
-is lost without recourse. SHARP gives every participant one platform for the services their
-role covers, and each module adds a mechanism the manual process lacks---a verification step,
-an expiry rule or an escalation timer---rather than reproducing paperwork on a screen.
+losses go unrecorded. SHARP gives every participant one platform for the services their role
+covers, and each module adds a mechanism the manual process lacks---a verification step, an
+expiry rule or an escalation timer---rather than reproducing paperwork on a screen.
 
 \section{Problem Statement}
 Five pain points motivate the system. \textit{Leave and passes:} handwritten applications and
@@ -87,8 +86,9 @@ manual parent contact create paperwork and delay. \textit{Mess feedback:} regist
 collection discourages honesty because identity is visible. \textit{Allotment:} when cluster
 members pay at different times, a partly reserved room may be taken by others, breaking
 clusters. \textit{Maintenance:} complaints stay unresolved for days, progress is untrackable
-and preferred slots go unhonoured. \textit{Laundry:} manual slips leave no record of batches,
-so losses stay invisible. Each is a traceability gap.
+and preferred slots go unhonoured. \textit{Laundry:} lost or damaged items are reported
+informally if at all, so recurring problems---a particular day, batch or item type---go
+unnoticed. Each is a traceability gap.
 
 \section{Proposed System}
 SHARP comprises five modules. \textit{Visitor and leave management} handles day-out, regular
@@ -137,13 +137,12 @@ answer reopens the ticket against the same ID; an SLA timer escalates independen
 \end{figure}
 
 \textit{Complaint management} issues an ID per maintenance report and runs the lifecycle of
-Fig.~\ref{fig:complaint}; what distinguishes it from a status field is student verification
-before closure and SLA escalation to the warden. \textit{Laundry management} replaces permanent
-markings on clothing with a reusable QR-coded bag bound to the student's account: request
-$\rightarrow$ scan $\rightarrow$ items received $\rightarrow$ washing $\rightarrow$ ready
-$\rightarrow$ collection $\rightarrow$ confirmation. Counts are recorded by category on
-receipt, the code is rescanned on return, and reports of missing or damaged items become
-statistics that expose recurring failures.
+Fig.~\ref{fig:complaint}, distinguished from a status field by student verification before
+closure and SLA escalation to the warden. \textit{Laundry issue tracking} leaves the physical
+process unchanged; a student reports a problem against a submission---missing, damaged, wrong
+or stained items, or a delay---logged with a timestamp and category, and aggregated reports
+let administrators spot recurring issues such as an item type or day with an unusual failure
+rate.
 
 \section{System Architecture}
 SHARP uses a layered architecture (Fig.~\ref{fig:arch}): a role-specific interface layer, an
@@ -178,14 +177,14 @@ application.
 \node[mod, right=of m1] (m2) {Mess feedback};
 \node[mod, right=of m2] (m3) {Allotment};
 \node[mod, below=2.5mm of m1] (m4) {Complaints \& SLA};
-\node[mod, right=of m4] (m5) {Laundry (QR)};
+\node[mod, right=of m4] (m5) {Laundry issues};
 \node[mod, right=of m5] (m6) {Notifications \& analytics};
 \begin{scope}[on background layer]
 \node[grp, fit=(m1)(m2)(m3)(m4)(m5)(m6)] (B) {};
 \end{scope}
 \node[tier] at (B.west) {Business logic};
 
-\node[lay, below=10mm of m4] (d1) {Users, requests,\\complaints, batches};
+\node[lay, below=10mm of m4] (d1) {Users, requests,\\complaints, reports};
 \node[lay, right=of d1] (d2) {Status history\\\& audit records};
 \node[lay, right=of d2] (d3) {Backup \&\\recovery};
 \begin{scope}[on background layer]
@@ -196,7 +195,7 @@ application.
 \node[rectangle, rounded corners=2pt, draw=black!70, fill=black!6, font=\scriptsize,
       align=center, minimum height=6.5mm, below=7mm of D.south, anchor=north,
       text width=70mm] (x)
-  {\textbf{Optional external services:} email, SMS or push notifications; QR library};
+  {\textbf{Optional external services:} email, SMS or push notifications};
 
 \draw[fl] (P.south) -- node[lbl,left,xshift=-1mm]{HTTPS / JSON} (A.north);
 \draw[fl] (A.south) -- node[lbl,left,xshift=-1mm]{authorised calls} (B.north);
@@ -212,43 +211,42 @@ be fixed later; external services stay optional.}
 The layers are specified by responsibility, not by product, so the implementation language and
 framework will be decided at the time of building, once the team has weighed hosting, library
 maturity and its own familiarity. A JavaScript stack---React with Tailwind CSS, Node.js with
-Express, MongoDB, token authentication and a QR library---is a proven candidate and is used
-for costing, but any stack offering a REST-capable framework, a managed database, secure token
-authentication and a test framework satisfies the design. Deferring the choice costs nothing:
-no workflow rule, role definition or metric depends on a particular language.
+Express, MongoDB and token authentication---is a proven candidate and is used for costing, but
+any stack offering a REST-capable framework, a managed database, secure token authentication
+and a test framework satisfies the design. Deferring the choice costs nothing: no workflow
+rule, role definition or metric depends on a particular language.
 
 \section{Requirements}
 Students file leave requests, track approvals, hold passes, submit anonymous feedback and meal
-requests, raise and reopen complaints with preferred slots, and track laundry. Parents act on
-leave notifications; wardens approve leave, manage rooms and clusters, assign caretakers and
-view analytics; caretakers accept assignments, propose slots and update status; mess and
-laundry staff work only within their own queues. Non-functionally, operations should complete
-within seconds at hostel-scale load, passwords must be hashed, parent approval tokens must
-resist unauthorised use, the service must stay available outside administrative hours, and the
-schema should admit further hostels without redesign.
+requests, raise and reopen complaints with preferred slots, and report lost or damaged laundry.
+Parents act on leave notifications; wardens approve leave, manage rooms and clusters, assign
+caretakers and view analytics; caretakers accept assignments, propose slots and update status;
+mess staff work within their feedback queue and laundry staff respond to logged issues.
+Non-functionally, operations should complete within seconds at hostel-scale load, passwords
+must be hashed, parent approval tokens must resist unauthorised use, the service must stay
+available outside administrative hours, and the schema should admit further hostels without
+redesign.
 
 \section{Feasibility and Cost}
-The system needs no special hardware, since QR scanning uses phone cameras, and the toolchain
-is free or open source: the prototype costs roughly \textrm{INR}\,0--3{,}500, dominated by
-optional hosting, domain, SMS and QR cards. It is operationally feasible because it replaces
-workflows students already understand. Delivery is phased---authentication and roles, then
-leave, complaints, mess, allotment, laundry, and finally notifications and deployment---so a
-working minimum viable product exists even if later phases are unfinished.
+The system needs no special hardware, and the toolchain is free or open source: the prototype
+costs roughly \textrm{INR}\,0--3{,}500, dominated by optional hosting, domain and SMS. It is
+operationally feasible because it adds reporting on top of workflows students already
+understand. Delivery is phased---authentication and roles, then leave, complaints, mess,
+allotment, laundry issue tracking, and finally notifications and deployment---so a working
+minimum viable product exists even if later phases are unfinished.
 
 \section{Risks and Success Metrics}
 Risks and mitigations are: unauthorised access, met by role-based authentication; forged
 parent approval, met by secure tokens plus warden verification; abuse of anonymous feedback,
 met by rate limits and audit records; premature loss of a reservation, met by expiry rules and
-transactional validation; lost laundry, met by batch tracking and collection confirmation; and
-server failure, met by backup and recovery. Success is measured by the fall in paper
-applications, average leave approval and complaint resolution times, share of complaints closed
-within SLA, reopen count, laundry complaints per hundred batches and reservation conflicts
-avoided---all computable from the platform's own records.
+transactional validation; and disputed laundry loss, met by timestamped reports tied to a
+submission. Success is measured by the fall in paper applications, average leave approval and
+complaint resolution times, share of complaints closed within SLA, reopen count, laundry
+issues reported per month and reservation conflicts avoided.
 
 \section{Conclusion}
 SHARP turns five disconnected hostel processes into one auditable platform, adding
-verification, expiry and escalation mechanisms rather than merely replacing paper. It is
-feasible technically, economically and operationally, with a mobile application, predictive
-maintenance and multi-campus support as future scope.
+verification, expiry and escalation mechanisms rather than merely replacing paper, and is
+feasible technically, economically and operationally as a course project.
 
 \end{document}
