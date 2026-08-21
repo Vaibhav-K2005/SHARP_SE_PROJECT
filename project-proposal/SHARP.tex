@@ -1,9 +1,8 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
-\usepackage{cite}
-\usepackage{amsmath,amssymb,amsfonts}
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
 \usepackage{graphicx}
-\usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
@@ -27,88 +26,136 @@
   tier/.style={font=\scriptsize\bfseries, rotate=90, anchor=south, inner sep=1.5mm}
 }
 
-\begin{document}
+% -----------------------------------------------------
+% bvraghav-tiet-ucs503p-article.sty
+% -----------------------------------------------------
 
-\title{SHARP: A Smart Hostel Administration and Resource Platform\\
-{\footnotesize Digital Workflows for Leave, Mess, Allotment, Maintenance and Laundry Services}}
+% Variable: Lab Instructor
+\makeatletter \newcommand{\BvrSetLabInstructor}[1]{%
+  \gdef\Bvr@LabInstructor{#1}}
+% default
+\newcommand{\Bvr@LabInstructor}{Ms. Anushka}
+% public accessor
+\newcommand{\BvrLabInstructorValue}{\Bvr@LabInstructor}
+\makeatother
 
-\author{
-\IEEEauthorblockN{Ali Ekram}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160138} \\
-\textit{Thapar Institute of Engineering and Technology}\\
-Patiala, India}
-\and
-\IEEEauthorblockN{Vaibhav Kansal}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160097} \\
-\textit{Thapar Institute of Engineering and Technology}\\
-Patiala, India}
-\and
-\IEEEauthorblockN{Riya Gupta}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160122} \\
-\textit{Thapar Institute of Engineering and Technology}\\
-Patiala, India}
-\and
-\IEEEauthorblockN{Ayush Kamboj}
-\IEEEauthorblockA{\textit{CSED, Roll No. 1024160118} \\
-\textit{Thapar Institute of Engineering and Technology}\\
-Patiala, India}
+% Add subtitle
+\usepackage{titling}
+% -- Set title bold
+\pretitle{\begin{center}\bfseries\fontsize{18bp}{18bp}\selectfont}
+\makeatletter
+\newcommand{\BvrSubtitle}[1]{%
+  \posttitle{%
+    \par\end{center}
+    \begin{center}\large#1\end{center}
+    \vskip 0.5em}%
+}
+\makeatother
+
+% Hints in the section title(s)
+\newcommand{\BvrHint}[1]{%
+  {\normalfont\normalsize\itshape\hfill #1}}
+
+% -----------------------------------------------------
+
+\title{SHARP: A Smart Hostel Administration and Resource Platform}
+
+\BvrSetLabInstructor{Ms. Anushka}
+
+\BvrSubtitle{%
+  Digital Workflows for Leave, Mess, Allotment, Maintenance and Laundry Services \\
+  Project Proposal for UCS503  \\
+  Submitted to: \BvrLabInstructorValue \\ \bfseries
+  Thapar Institute of Engineering and Technology%
 }
 
+\author{
+  Ali Ekram, CSED, Roll No: \texttt{1024160138}
+  \and
+  Vaibhav Kansal, CSED, Roll No: \texttt{1024160097}
+  \and
+  Riya Gupta, CSED, Roll No: \texttt{1024160122}
+  \and
+  Ayush Kamboj, CSED, Roll No: \texttt{1024160118}
+}
+
+\begin{document}
 \maketitle
 
-\begin{abstract}
-Hostel administration still depends on handwritten applications, physical registers and
-loosely tracked complaints, which produces delays, broken room clusters, unresolved
-maintenance and lost laundry. SHARP is a centralised web platform unifying five such
-processes---leave and visitor passes, mess feedback, room allotment, maintenance complaints
-and laundry---behind role-based workflows for students, parents, wardens, caretakers, mess
-staff and laundry staff. The goal is not digitisation alone but traceability and
-accountability: complaints close only on student verification, room reservations expire
-automatically, laundry issues are logged against each submission so recurring problems surface
-in the data, and mess feedback stays anonymous to mess staff while remaining auditable.
-\end{abstract}
+\section{Higher order goal}
+This project aims to improve the accountability and traceability of everyday hostel
+administration by replacing handwritten applications, physical registers and loosely tracked
+complaints with a single auditable digital record. While the underlying goal is broader
+institutional efficiency, the immediate engineering objective is to translate \emph{reliable,
+traceable service delivery} across five hostel processes into a measurable, deployable
+software solution.
 
-\begin{IEEEkeywords}
-hostel management, workflow automation, role-based access control, SLA escalation,
-issue reporting, web application
-\end{IEEEkeywords}
-
-\section{Introduction}
-Several routine hostel processes are partially manual or lack tracking: leave approvals are
-delayed, complaint status is unknown, clusters break under staggered fee payment, and laundry
-losses go unrecorded. SHARP gives every participant one platform for the services their role
-covers, and each module adds a mechanism the manual process lacks---a verification step, an
-expiry rule or an escalation timer---rather than reproducing paperwork on a screen.
+\section{Time to value }
+\begin{itemize}[leftmargin=0.7cm]
+    \item We will deliver meaningful increments quickly by building authentication and role
+    management first, then layering the five service modules on top so a usable core exists
+    early.
+    \item We will prioritize fast feedback over perfection by phasing delivery (leave,
+    complaints, mess, allotment, laundry, then notifications and deployment) so a working
+    minimum viable product exists even if later phases are unfinished.
+    \item Success is defined by what can be delivered and measured in the first iteration
+    (leave approval and complaint tracking), then improved based on warden and student
+    feedback.
+\end{itemize}
 
 \section{Problem Statement}
-Five pain points motivate the system. \textit{Leave and passes:} handwritten applications and
-manual parent contact create paperwork and delay. \textit{Mess feedback:} register-based
-collection discourages honesty because identity is visible. \textit{Allotment:} when cluster
-members pay at different times, a partly reserved room may be taken by others, breaking
-clusters. \textit{Maintenance:} complaints stay unresolved for days, progress is untrackable
-and preferred slots go unhonoured. \textit{Laundry:} lost or damaged items are reported
-informally if at all, so recurring problems---a particular day, batch or item type---go
-unnoticed. Each is a traceability gap.
+Several routine hostel processes are partially manual or lack tracking. Five pain points
+motivate the system:
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Leave and passes:} handwritten applications and manual parent contact create
+    paperwork and delay.
+    \item \textbf{Mess feedback:} register-based collection discourages honesty because
+    identity is visible to mess staff.
+    \item \textbf{Allotment:} when cluster members pay at different times, a partly reserved
+    room may be taken by others, breaking clusters.
+    \item \textbf{Maintenance:} complaints stay unresolved for days, progress is untrackable
+    and preferred repair slots go unhonoured.
+    \item \textbf{Laundry:} lost or damaged items are reported informally if at all, so
+    recurring problems (a particular day, batch or item type) go unnoticed.
+\end{itemize}
 
-\section{Proposed System}
-SHARP comprises five modules. \textit{Visitor and leave management} handles day-out, regular
-and emergency requests carrying start and end time, destination, reason and emergency contact,
-routed as Student $\rightarrow$ Parent verification $\rightarrow$ Warden approval
-$\rightarrow$ digital pass with a unique ID shown at exit. \textit{Mess management} takes
-categorised feedback on quality, hygiene, quantity, menu, timing and service plus special meal
-requests such as khichdi during illness or Jain diets; feedback is anonymous to mess staff
-while internal records deter abuse, and administrators see aggregates such as a weekly rise in
-food-quality complaints.
+\textbf{Why this matters now (contextual relevance):} With a hostel population large enough
+that staff bandwidth is limited, even small tracking improvements (a unique complaint ID, an
+expiry rule, an SLA timer) can noticeably reduce unresolved cases and disputes.
 
-\textit{Allotment} adds a temporary reservation: a cluster leader holds a room while members
-complete payment, and the room advances through Available $\rightarrow$ Temporarily Reserved
-$\rightarrow$ Partially Confirmed $\rightarrow$ Fully Confirmed $\rightarrow$ Allotted. The
-reservation expires after a set window, say 48 hours, returning the room to the pool---which
-preserves clusters without weakening the fee requirement.
+\section{Proposed Solution }
+\subsection{Overview}
+Build a \textbf{web-based} hostel administration platform with role-based workflows for
+students, parents, wardens, caretakers, mess staff and laundry staff, comprising five modules:
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Visitor and leave management:} day-out, regular and emergency requests
+    routed as Student $\rightarrow$ Parent verification $\rightarrow$ Warden approval
+    $\rightarrow$ digital pass with a unique ID.
+    \item \textbf{Mess management:} categorised feedback on quality, hygiene, quantity, menu,
+    timing and service, plus special meal requests; Feedback remains anonymous to mess staff, while internal records help prevent misuse
+    \item \textbf{Allotment:} a temporary room reservation for a cluster leader that expires
+    after a set window (e.g. 48 hours) if payment is incomplete, preserving clusters without
+    weakening the fee requirement.
+    \item \textbf{Complaint/maintenance management:} an ID and priority per report, caretaker
+    assignment, and closure only after student verification, with SLA escalation to the
+    warden.
+    \item \textbf{Laundry issue tracking:} reports of missing, damaged, wrong or stained items,
+    or delays, logged against each submission for later aggregation.
+\end{itemize}
+
+\subsection{Core workflow (complaint lifecycle example)}
+\begin{enumerate}[leftmargin=0.7cm]
+    \item Student files a complaint (category, preferred slot) and receives a complaint ID
+    with an assigned priority.
+    \item A caretaker is assigned and either agrees the proposed slot or offers an alternative;
+    an SLA timer runs independently and notifies the warden if breached.
+    \item The caretaker completes the repair and the student verifies resolution.
+    \item If verified, the complaint closes; if not, it reopens against the same ID.
+\end{enumerate}
 
 \begin{figure}[!t]
 \centering
-\resizebox{0.70\columnwidth}{!}{%
+\resizebox{0.95\columnwidth}{!}{%
 \begin{tikzpicture}[node distance=4mm]
 \node[term] (a) {Student files complaint\\{\tiny(category, preferred slot)}};
 \node[proc, below=of a] (b) {Complaint ID issued\\ \& priority assigned};
@@ -136,26 +183,36 @@ answer reopens the ticket against the same ID; an SLA timer escalates independen
 \label{fig:complaint}
 \end{figure}
 
-\textit{Complaint management} issues an ID per maintenance report and runs the lifecycle of
-Fig.~\ref{fig:complaint}, distinguished from a status field by student verification before
-closure and SLA escalation to the warden. \textit{Laundry issue tracking} leaves the physical
-process unchanged; a student reports a problem against a submission---missing, damaged, wrong
-or stained items, or a delay---logged with a timestamp and category, and aggregated reports
-let administrators spot recurring issues such as an item type or day with an unusual failure
-rate.
+\subsection{Operational constraints for an educational, campus setting}
+\begin{itemize}[leftmargin=0.7cm]
+    \item Every sensitive endpoint checks both identity and permission, so a student cannot
+    reach administrative dashboards, parent records or the identity behind anonymous feedback.
+    \item Modules stay separable, so one module can change without redesigning the whole
+    application.
+    \item Design for deployability using common web hosting and managed databases.
+\end{itemize}
 
-\section{System Architecture}
-SHARP uses a layered architecture (Fig.~\ref{fig:arch}): a role-specific interface layer, an
-application and REST API layer carrying authentication and authorisation, a business logic
-layer holding the five modules, a persistence layer, and optional external services. Access
-control is cross-cutting---every sensitive endpoint checks both identity and permission, so a
-student cannot reach administrative dashboards, parent records or the identity behind
-anonymous feedback---and modules stay separable, so one can change without redesigning the
-application.
+\section{Solution Approach }
+This is an engineering course project, so we focus on layered architecture, role-based access
+control and workflow correctness rather than novel algorithm research.
+
+\subsection{Layered architecture }
+A layered architecture separates concerns across five tiers:
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Interface:} role-specific portals for students/parents, wardens/admins, and
+    caretaker/mess/laundry staff apps.
+    \item \textbf{Application:} REST API endpoints, authentication (hashed credentials,
+    tokens), and role-based access control.
+    \item \textbf{Business logic:} the five modules (leave \& pass, mess feedback, allotment,
+    complaints \& SLA, laundry issues) plus notifications and analytics.
+    \item \textbf{Data:} users, requests, complaints and reports; status history and audit
+    records; backup and recovery.
+    \item \textbf{External services (optional):} email, SMS or push notifications.
+\end{itemize}
 
 \begin{figure}[!t]
 \centering
-\resizebox{0.84\columnwidth}{!}{%
+\resizebox{\columnwidth}{!}{%
 \begin{tikzpicture}[node distance=3mm]
 \node[lay] (u1) {Student \& parent portal};
 \node[lay, right=of u1] (u2) {Warden / admin dashboard};
@@ -194,7 +251,7 @@ application.
 
 \node[rectangle, rounded corners=2pt, draw=black!70, fill=black!6, font=\scriptsize,
       align=center, minimum height=6.5mm, below=7mm of D.south, anchor=north,
-      text width=70mm] (x)
+      text width=100mm] (x)
   {\textbf{Optional external services:} email, SMS or push notifications};
 
 \draw[fl] (P.south) -- node[lbl,left,xshift=-1mm]{HTTPS / JSON} (A.north);
@@ -207,46 +264,127 @@ be fixed later; external services stay optional.}
 \label{fig:arch}
 \end{figure}
 
-\subsection{Technology and Language Flexibility}
-The layers are specified by responsibility, not by product, so the implementation language and
-framework will be decided at the time of building, once the team has weighed hosting, library
-maturity and its own familiarity. A JavaScript stack---React with Tailwind CSS, Node.js with
-Express, MongoDB and token authentication---is a proven candidate and is used for costing, but
-any stack offering a REST-capable framework, a managed database, secure token authentication
-and a test framework satisfies the design. Deferring the choice costs nothing: no workflow
-rule, role definition or metric depends on a particular language.
+\subsection{CI/CD and fast delivery enabler}
+CI/CD will be used to:
+\begin{itemize}[leftmargin=0.7cm]
+    \item Automatically build and run tests on every change.
+    \item Produce repeatable deployment artifacts to staging.
+    \item Enable safe and frequent releases of incremental features across the five modules.
+\end{itemize}
 
-\section{Requirements}
-Students file leave requests, track approvals, hold passes, submit anonymous feedback and meal
-requests, raise and reopen complaints with preferred slots, and report lost or damaged laundry.
-Parents act on leave notifications; wardens approve leave, manage rooms and clusters, assign
-caretakers and view analytics; caretakers accept assignments, propose slots and update status;
-mess staff work within their feedback queue and laundry staff respond to logged issues.
-Non-functionally, operations should complete within seconds at hostel-scale load, passwords
-must be hashed, parent approval tokens must resist unauthorised use, the service must stay
-available outside administrative hours, and the schema should admit further hostels without
-redesign.
+\section{Evaluation Criterion }
+We define success using measurable metrics tied to the core workflows.
 
-\section{Feasibility and Cost}
-The system needs no special hardware, and the toolchain is free or open source: the prototype
-costs roughly \textrm{INR}\,0--3{,}500, dominated by optional hosting, domain and SMS. It is
-operationally feasible because it adds reporting on top of workflows students already
-understand. Delivery is phased---authentication and roles, then leave, complaints, mess,
-allotment, laundry issue tracking, and finally notifications and deployment---so a working
-minimum viable product exists even if later phases are unfinished.
+\subsection{Primary evaluation metrics}
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Complaint resolution time:} time between complaint filing and verified
+    closure.
+    \item \textbf{SLA compliance:} share of complaints closed within the defined SLA window.
+    \item Attribution: measured from database timestamps (filing, assignment, completion,
+    verification).
+\end{itemize}
 
-\section{Risks and Success Metrics}
-Risks and mitigations are: unauthorised access, met by role-based authentication; forged
-parent approval, met by secure tokens plus warden verification; abuse of anonymous feedback,
-met by rate limits and audit records; premature loss of a reservation, met by expiry rules and
-transactional validation; and disputed laundry loss, met by timestamped reports tied to a
-submission. Success is measured by the fall in paper applications, average leave approval and
-complaint resolution times, share of complaints closed within SLA, reopen count, laundry
-issues reported per month and reservation conflicts avoided.
+\subsection{Secondary evaluation metrics}
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Paper reduction:} fall in paper-based leave applications after rollout.
+    \item \textbf{Leave approval time:} average time from student request to digital pass
+    issuance.
+    \item \textbf{Reopen count:} number of complaints reopened after a failed verification.
+    \item \textbf{Laundry issues reported per month} and recurring-issue detection rate.
+    \item \textbf{Reservation conflicts avoided:} clusters preserved through the expiry-based
+    allotment mechanism.
+\end{itemize}
 
-\section{Conclusion}
-SHARP turns five disconnected hostel processes into one auditable platform, adding
-verification, expiry and escalation mechanisms rather than merely replacing paper, and is
-feasible technically, economically and operationally as a course project.
+\subsection{Pilot validation plan }
+\begin{itemize}[leftmargin=0.7cm]
+    \item Recruit a pilot hostel wing with student, warden, caretaker, mess and laundry staff
+    roles.
+    \item Compare metrics before/after within the iteration window by logging baseline
+    estimates from existing manual records.
+\end{itemize}
+
+\section{Scalability }
+The proposition should scale in both theoretical and practical senses.
+
+\begin{enumerate}[leftmargin=0.7cm]
+    \item \textbf{Scalable (theoretically):} The system should support growth in the number of
+    students, requests and concurrent dashboard usage by:
+    \begin{itemize}[leftmargin=0.7cm]
+        \item decoupling the interface, application and business-logic layers,
+        \item keeping modules separable so one can change without redesigning the rest,
+        \item designing the schema to admit further hostels without redesign.
+    \end{itemize}
+
+    \item \textbf{Operationally deployable (practically):} The system should run on common web
+    hosting:
+    \begin{itemize}[leftmargin=0.7cm]
+        \item a managed database with backup and recovery,
+        \item token-based authentication and role-based access control,
+        \item a CI/CD pipeline for staging/production deployment.
+    \end{itemize}
+\end{enumerate}
+
+\section{Engine availability heuristic}
+A mature set of ``engines'' (tooling/services) is available to implement this as a web-based
+project. The layers are specified by responsibility, not by product, so the implementation
+stack will be finalised at build time once hosting, library maturity and team familiarity are
+weighed:
+\begin{itemize}[leftmargin=0.7cm]
+    \item Web framework for REST APIs and role-specific reactive pages (e.g. React with
+    Tailwind CSS).
+    \item Managed backend runtime and database (e.g. Node.js with Express and MongoDB).
+    \item Token-based authentication with hashed credentials.
+    \item Test framework for unit/integration tests.
+    \item CI runner and staging deployment target.
+    \item Optional notification services (email, SMS, push).
+\end{itemize}
+No workflow rule, role definition or metric depends on a particular language, so deferring the
+final stack choice costs nothing.
+
+\section{Project scope and deliverables }
+\subsection{Initial deliverable }
+\begin{itemize}[leftmargin=0.7cm]
+    \item Authentication and role-based access control for all six roles
+    \item Leave and visitor pass workflow: Student $\rightarrow$ Parent $\rightarrow$ Warden
+    \item Complaint lifecycle: filing, assignment, SLA timer, verified closure
+    \item Basic logging and timestamps for resolution-time measurement
+    \item CI: build + backend unit tests + linting
+    \item CD to staging with a single command or pipeline job
+\end{itemize}
+
+\subsection{Subsequent deliverables}
+\begin{itemize}[leftmargin=0.7cm]
+    \item Mess feedback module with anonymity and abuse-deterrence records
+    \item Allotment module with temporary reservation and expiry
+    \item Laundry issue tracking with aggregated recurring-issue reports
+    \item Notification layer (email/SMS optional; can start in-app)
+    \item Admin/warden analytics dashboard
+\end{itemize}
+
+\section{Risks and mitigations}
+\begin{itemize}[leftmargin=0.7cm]
+    \item \textbf{Unauthorised access:} mitigated by role-based authentication.
+    \item \textbf{Forged parent approval:} mitigated by secure tokens plus warden
+    verification.
+    \item \textbf{Abuse of anonymous mess feedback:} mitigated by rate limits and internal
+    audit records.
+    \item \textbf{Premature loss of a room reservation:} mitigated by expiry rules and
+    transactional validation.
+    \item \textbf{Disputed laundry loss:} mitigated by timestamped reports tied to each
+    submission.
+    \item \textbf{Staff adoption:} keep workflow steps minimal for caretakers, mess and
+    laundry staff, and provide an easy UI for status updates.
+\end{itemize}
+
+\section{Summary}
+This project proposes a deployable web platform, SHARP, that turns five disconnected hostel
+processes (leave and passes, mess feedback, allotment, maintenance complaints and laundry)
+into one auditable system. It meets the course criteria by emphasizing time-to-value through
+phased delivery, implementing CI/CD to support frequent safe releases, and using measurable
+evaluation criteria such as complaint resolution time and SLA compliance. It remains focused on
+engineering workflow correctness, traceability and scalability readiness rather than
+research-driven novelty, and is feasible technically, economically and operationally as a
+course project (prototype cost roughly \textrm{INR}\,0--3{,}500, dominated by optional hosting,
+domain and SMS).
 
 \end{document}
