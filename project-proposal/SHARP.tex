@@ -70,9 +70,9 @@
 }
 
 \author{
-  Ali Ekram, CSED, Roll No: \texttt{1024160138}
-  \and
   Vaibhav Kansal, CSED, Roll No: \texttt{1024160097}
+  \and
+  Ali Ekram, CSED, Roll No: \texttt{1024160138}
   \and
   Riya Gupta, CSED, Roll No: \texttt{1024160122}
   \and
@@ -95,7 +95,7 @@ software solution.
     \item We will deliver meaningful increments quickly by building authentication and role
     management first, then layering the five service modules on top so a usable core exists
     early.
-    \item We will prioritize fast feedback over perfection by phasing delivery (leave,
+    \item We will prioritize fast feedback by phasing delivery (leave,
     complaints, mess, allotment, laundry, then notifications and deployment) so a working
     minimum viable product exists even if later phases are unfinished.
     \item Success is defined by what can be delivered and measured in the first iteration
@@ -121,7 +121,7 @@ motivate the system:
 
 \textbf{Why this matters now (contextual relevance):} With a hostel population large enough
 that staff bandwidth is limited, even small tracking improvements (a unique complaint ID, an
-expiry rule, an SLA timer) can noticeably reduce unresolved cases and disputes.
+expiry rule, an SLA (Service Level Agreement) timer) can noticeably reduce unresolved cases and disputes.
 
 \section{Proposed Solution }
 \subsection{Overview}
@@ -193,7 +193,7 @@ answer reopens the ticket against the same ID; an SLA timer escalates independen
 \end{itemize}
 
 \section{Solution Approach }
-This is an engineering course project, so we focus on layered architecture, role-based access
+We focus on layered architecture, role-based access
 control and workflow correctness rather than novel algorithm research.
 
 \subsection{Layered architecture }
@@ -203,66 +203,12 @@ A layered architecture separates concerns across five tiers:
     caretaker/mess/laundry staff apps.
     \item \textbf{Application:} REST API endpoints, authentication (hashed credentials,
     tokens), and role-based access control.
-    \item \textbf{Business logic:} the five modules (leave \& pass, mess feedback, allotment,
+    \item \textbf{Application Services:} the five modules (leave \& pass, mess feedback, allotment,
     complaints \& SLA, laundry issues) plus notifications and analytics.
     \item \textbf{Data:} users, requests, complaints and reports; status history and audit
     records; backup and recovery.
     \item \textbf{External services (optional):} email, SMS or push notifications.
 \end{itemize}
-
-\begin{figure}[!t]
-\centering
-\resizebox{\columnwidth}{!}{%
-\begin{tikzpicture}[node distance=3mm]
-\node[lay] (u1) {Student \& parent portal};
-\node[lay, right=of u1] (u2) {Warden / admin dashboard};
-\node[lay, right=of u2] (u3) {Caretaker, mess \& laundry apps};
-\begin{scope}[on background layer]
-\node[grp, fit=(u1)(u2)(u3)] (P) {};
-\end{scope}
-\node[tier] at (P.west) {Interface};
-
-\node[lay, below=10mm of u1] (a1) {REST API endpoints};
-\node[lay, right=of a1] (a2) {Auth: hashed\\credentials, tokens};
-\node[lay, right=of a2] (a3) {Role-based access control};
-\begin{scope}[on background layer]
-\node[grp, fit=(a1)(a2)(a3)] (A) {};
-\end{scope}
-\node[tier] at (A.west) {Application};
-
-\node[mod, below=10mm of a1] (m1) {Leave \& pass};
-\node[mod, right=of m1] (m2) {Mess feedback};
-\node[mod, right=of m2] (m3) {Allotment};
-\node[mod, below=2.5mm of m1] (m4) {Complaints \& SLA};
-\node[mod, right=of m4] (m5) {Laundry issues};
-\node[mod, right=of m5] (m6) {Notifications \& analytics};
-\begin{scope}[on background layer]
-\node[grp, fit=(m1)(m2)(m3)(m4)(m5)(m6)] (B) {};
-\end{scope}
-\node[tier] at (B.west) {Business logic};
-
-\node[lay, below=10mm of m4] (d1) {Users, requests,\\complaints, reports};
-\node[lay, right=of d1] (d2) {Status history\\\& audit records};
-\node[lay, right=of d2] (d3) {Backup \&\\recovery};
-\begin{scope}[on background layer]
-\node[grp, fit=(d1)(d2)(d3)] (D) {};
-\end{scope}
-\node[tier] at (D.west) {Data};
-
-\node[rectangle, rounded corners=2pt, draw=black!70, fill=black!6, font=\scriptsize,
-      align=center, minimum height=6.5mm, below=7mm of D.south, anchor=north,
-      text width=100mm] (x)
-  {\textbf{Optional external services:} email, SMS or push notifications};
-
-\draw[fl] (P.south) -- node[lbl,left,xshift=-1mm]{HTTPS / JSON} (A.north);
-\draw[fl] (A.south) -- node[lbl,left,xshift=-1mm]{authorised calls} (B.north);
-\draw[fl] (B.south) -- node[lbl,left,xshift=-1mm]{queries \& writes} (D.north);
-\draw[fl, dashed] (B.east) -| ($(D.east)+(7mm,0)$) |- (x.east);
-\end{tikzpicture}}
-\caption{Layered architecture. Each block names a role rather than a product, so the stack can
-be fixed later; external services stay optional.}
-\label{fig:arch}
-\end{figure}
 
 \subsection{CI/CD and fast delivery enabler}
 CI/CD will be used to:
@@ -286,7 +232,7 @@ We define success using measurable metrics tied to the core workflows.
 
 \subsection{Secondary evaluation metrics}
 \begin{itemize}[leftmargin=0.7cm]
-    \item \textbf{Paper reduction:} fall in paper-based leave applications after rollout.
+    \item \textbf{Paper Reduction:} Reduction in paper-based leave applications following the implementation of the system.
     \item \textbf{Leave approval time:} average time from student request to digital pass
     issuance.
     \item \textbf{Reopen count:} number of complaints reopened after a failed verification.
@@ -372,19 +318,9 @@ final stack choice costs nothing.
     transactional validation.
     \item \textbf{Disputed laundry loss:} mitigated by timestamped reports tied to each
     submission.
-    \item \textbf{Staff adoption:} keep workflow steps minimal for caretakers, mess and
-    laundry staff, and provide an easy UI for status updates.
 \end{itemize}
 
 \section{Summary}
-This project proposes a deployable web platform, SHARP, that turns five disconnected hostel
-processes (leave and passes, mess feedback, allotment, maintenance complaints and laundry)
-into one auditable system. It meets the course criteria by emphasizing time-to-value through
-phased delivery, implementing CI/CD to support frequent safe releases, and using measurable
-evaluation criteria such as complaint resolution time and SLA compliance. It remains focused on
-engineering workflow correctness, traceability and scalability readiness rather than
-research-driven novelty, and is feasible technically, economically and operationally as a
-course project (prototype cost roughly \textrm{INR}\,0--3{,}500, dominated by optional hosting,
-domain and SMS).
+This project proposes SHARP, a deployable web platform that integrates five disconnected hostel processes—leave and passes, mess feedback, room allotment, maintenance complaints, and laundry—into a single auditable system. The platform focuses on workflow correctness, traceability, scalability, and efficient process management. It supports phased implementation, CI/CD for frequent and reliable releases, and measurable performance through metrics such as complaint resolution time and SLA compliance.
 
 \end{document}
