@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SHARP — Smart Hostel Allocation & Resident Portal</title>
+  <meta name="description"
+    content="Centralized smart hostel management and fair cluster-preserving room allocation platform for students, parents, caretakers, and college administrators.">
+
+  <!-- Modern Google Fonts: Outfit (headings) and Plus Jakarta Sans (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap"
+    rel="stylesheet">
+
+  <!-- FontAwesome Icons for rich UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body class="theme-light">
+
+  <!-- Top Real Database Bar & Account Switcher -->
+  <div id="demo-bar" class="demo-bar">
+    <div class="demo-bar-inner">
+
+      <div class="demo-role-pills" id="demo-role-pills">
+        <!-- Injected dynamically via JS: newly registered students, parents, caretakers, admin -->
+      </div>
+      <div class="demo-actions">
+        <button id="btn-top-register" class="btn-demo-action btn-top-register"
+          title="Create New Student, Parent, or Caretaker">
+          <i class="fa-solid fa-user-plus"></i> + Create User
+        </button>
+        <button id="btn-reset-data" class="btn-demo-action" title="Clear and reset database to fresh state">
+          <i class="fa-solid fa-rotate-left"></i> Reset Clean DB
+        </button>
+        <button id="btn-toggle-theme" class="btn-demo-action" title="Toggle Light/Dark Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Universal Header Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group" id="btn-go-home" style="cursor: pointer;" title="Back to Home Page">
+        <div class="brand-logo">
+          <i class="fa-solid fa-building-shield"></i>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">SHARP</span>
+          <span class="brand-subtitle">Smart Hostel Allocation & Resident Portal</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="active-semester-pill" id="header-semester-badge">
+          <span class="pulse-dot"></span>
+          <span class="sem-text">2026–27 Semester 1</span>
+          <span class="phase-chip" id="header-phase-chip">Phase 1: Pre-Allocation</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Guest Auth Controls (shown when not logged in) -->
+        <div class="header-auth-buttons" id="header-auth-guest" style="display: flex;">
+          <button id="btn-header-login" class="btn-header-login">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+          </button>
+          <button id="btn-header-register" class="btn-header-register">
+            <i class="fa-solid fa-user-plus"></i> + Create Account
+          </button>
+        </div>
+
+        <!-- Logged-In User Controls (shown when logged in) -->
+        <div id="header-auth-user" style="display: none; align-items: center; gap: 14px;">
+          <!-- Notifications Menu -->
+          <div class="notif-dropdown-wrapper">
+            <button id="btn-notif-bell" class="btn-icon" title="Notifications">
+              <i class="fa-regular fa-bell"></i>
+              <span class="notif-counter" id="notif-badge" style="display: none;">0</span>
+            </button>
+            <div class="notif-dropdown" id="notif-dropdown">
+              <div class="notif-header">
+                <h4>Notifications</h4>
+                <button id="btn-mark-all-read" class="btn-link">Mark all read</button>
+              </div>
+              <div class="notif-list" id="notif-list">
+                <div class="empty-state">No new notifications</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active User Profile Dropdown -->
+          <div class="user-profile-menu">
+            <button id="btn-user-profile" class="user-profile-trigger">
+              <div class="avatar" id="header-user-avatar">AD</div>
+              <div class="user-meta">
+                <span class="user-name" id="header-user-name">User Name</span>
+                <span class="user-role-badge" id="header-user-role">Role</span>
+              </div>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="dropdown-header">
+                <div class="profile-info">
+                  <strong id="dropdown-user-name">User Name</strong>
+                  <small id="dropdown-user-email">email@thapar.edu</small>
+                </div>
+              </div>
+              <hr class="dropdown-divider">
+              <button id="btn-open-login" class="dropdown-item">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> Switch / Login Account
+              </button>
+              <button id="btn-open-register" class="dropdown-item">
+                <i class="fa-solid fa-user-plus"></i> Create New Account
+              </button>
+              <button id="btn-logout" class="dropdown-item" style="color: var(--danger);">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+              </button>
+            </div>
+          </div>
+
+          <button id="btn-header-logout" class="btn-header-logout" title="Log out to Home Page">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="app-main" id="app-main">
+    <!-- Dynamic Portal Views (Student, Parent, Caretaker, Admin) Injected Here -->
+    <div id="portal-mount-point" class="portal-container">
+      <div class="loading-spinner">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span>Loading SHARP portal...</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Reusable Modal Container -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-dialog" id="modal-dialog">
+      <div class="modal-header">
+        <h3 id="modal-title">Modal Title</h3>
+        <button id="modal-close" class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamic content injected -->
+      </div>
+      <div class="modal-footer" id="modal-footer">
+        <!-- Modal action buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Application Scripts -->
+  <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

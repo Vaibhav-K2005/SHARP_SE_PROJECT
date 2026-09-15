@@ -1,0 +1,24 @@
+{
+  "name": "sharp-hostel-portal",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "SHARP — Smart Hostel Allocation & Resident Portal",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "node server/server.js",
+    "test": "node --test tests/allocation.test.js tests/workflow.test.js tests/registration.test.js"
+  },
+  "keywords": [
+    "hostel-management",
+    "room-allocation",
+    "cluster-allocation",
+    "sharp"
+  ],
+  "author": "Vaibhav Kansal, Ayush Kamboj, Ali Ekram, Riya Gupta",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

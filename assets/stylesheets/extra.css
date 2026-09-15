@@ -28,17 +28,24 @@ a.autorefs-external:hover::after {
 
 :root {
   --md-hue: 36deg;
+  --tiet-logo-filter: none;
+  --htag-color: var(--md-accent-fg-color);
+}
+
+[data-md-color-scheme="slate"] {
+  --tiet-logo-filter: invert(1);
+  --htag-color: var(--md-accent-fg-color);
 }
 
 .tiet-logo {
   height: 2.9em !important;
-  filter: invert(30%) sepia(26%) saturate(6248%) hue-rotate(345deg) brightness(83%) contrast(84%);
-  margin-right:.5em;
-  float:left;
+  filter: var(--tiet-logo-filter);
+  margin-right: .5em;
+  float: left;
 }
 
 .htag {
   padding-left: 0.33em;
-  color: #bf9003;
+  color: var(--htag-color);
   font-size: 0.7em;
 }
