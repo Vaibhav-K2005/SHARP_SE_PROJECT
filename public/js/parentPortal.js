@@ -38,24 +38,18 @@ export class ParentPortal {
     }
 
     const navItems = [
-      { id: 'child-overview', icon: 'fa-child', label: 'Child Overview & Room' },
-      { id: 'leave-approvals', icon: 'fa-clipboard-check', label: 'Leave & Entry Approvals' },
-      { id: 'child-passes', icon: 'fa-id-badge', label: "Child's Digital Passes" },
+      { id: 'child-overview', icon: 'fa-child', label: 'Child Overview' },
       { id: 'report-caretaker', icon: 'fa-paper-plane', label: 'Report to Caretaker' }
     ];
+
+    if (!navItems.some(item => item.id === this.activeTab)) {
+      this.activeTab = 'child-overview';
+    }
 
     const contentHtml = `
       <!-- Content Panes -->
       <div class="portal-pane ${this.activeTab === 'child-overview' ? 'active' : ''}" id="parent-pane-overview">
         ${this.renderChildOverview()}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'leave-approvals' ? 'active' : ''}" id="parent-pane-approvals">
-        ${this.renderApprovalsSection()}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'child-passes' ? 'active' : ''}" id="parent-pane-passes">
-        ${this.renderChildPassesSection()}
       </div>
 
       <div class="portal-pane ${this.activeTab === 'report-caretaker' ? 'active' : ''}" id="parent-pane-report">
@@ -191,9 +185,6 @@ export class ParentPortal {
             Parents have direct communication with hostel caretakers and full transparency over student leave and campus entry permissions.
           </p>
           <div style="display: flex; flex-direction: column; gap: 8px;">
-            <button class="btn btn-secondary" id="btn-parent-goto-approvals" style="justify-content: flex-start;">
-              <i class="fa-solid fa-clipboard-check" style="color: var(--primary);"></i> Review Pending Approvals
-            </button>
             <button class="btn btn-secondary" id="btn-parent-goto-report" style="justify-content: flex-start;">
               <i class="fa-solid fa-triangle-exclamation" style="color: var(--warning);"></i> Submit Caretaker Inquiry
             </button>
@@ -464,7 +455,6 @@ export class ParentPortal {
         this.attachEvents();
 
         if (tab === 'leave-approvals') this.loadApprovals();
-        if (tab === 'child-passes') this.loadChildPasses();
       });
     });
 

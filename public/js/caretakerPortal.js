@@ -37,12 +37,14 @@ export class CaretakerPortal {
     const hostelName = this.user.hostelName || 'Hostel M';
 
     const navItems = [
-      { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard & Controls' },
+      { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard' },
       { id: 'allocation-center', icon: 'fa-arrows-split-up-and-left', label: 'Room Allocation Engine' },
-      { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' },
-      { id: 'complaints', icon: 'fa-inbox', label: 'Complaints Triage' },
-      { id: 'local-entry', icon: 'fa-user-clock', label: 'Local Entry Approvals' }
+      { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' }
     ];
+
+    if (!navItems.some(item => item.id === this.activeTab)) {
+      this.activeTab = 'dashboard';
+    }
 
     const contentHtml = `
       <!-- Content Panes -->
@@ -56,14 +58,6 @@ export class CaretakerPortal {
 
       <div class="portal-pane ${this.activeTab === 'hostel-map' ? 'active' : ''}" id="ct-pane-map">
         ${this.renderHostelMapSection(hostelName)}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="ct-pane-complaints">
-        ${this.renderComplaintsSection(hostelName)}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'local-entry' ? 'active' : ''}" id="ct-pane-entry">
-        ${this.renderLocalEntrySection(hostelName)}
       </div>
     `;
 
@@ -89,92 +83,53 @@ export class CaretakerPortal {
     const sem = this.allocationData?.semester || {};
 
     return `
-      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+      <div class="demo-page-heading">
         <div>
-          <h2>Caretaker Management Console</h2>
-          <span style="color: var(--text-secondary); font-size: 0.88rem;">
-            Assigned Facility: <strong>${hostelName}</strong> | Responsible Official: <strong>${this.user.fullName}</strong>
-          </span>
+          <h2>Caretaker Demo Console</h2>
+          <p>Assigned facility: <strong>${hostelName}</strong>. This demo keeps only the daily operational flows visible.</p>
         </div>
-        <div class="status-pill primary" style="font-size: 0.82rem; padding: 6px 14px;">
-          Active Phase ${sem.activePhase || 1}
-        </div>
+        <span class="status-pill primary"><i class="fa-solid fa-building-user"></i> ${this.user.fullName}</span>
       </div>
 
-      <!-- Stats Grid (Section 39) -->
-      <div class="grid-4" style="margin-bottom: 24px;">
+      <div class="grid-3" style="margin-bottom: 28px;">
         <div class="stat-widget">
-          <div class="stat-icon primary"><i class="fa-solid fa-users"></i></div>
+          <div class="stat-icon info"><i class="fa-solid fa-hotel"></i></div>
           <div class="stat-content">
-            <span class="stat-label">Total Clusters</span>
-            <span class="stat-value">${stats.totalClusters || 0}</span>
+            <span class="stat-label">Hostel</span>
+            <span class="stat-value" style="font-size: 1.2rem;">${hostelName}</span>
           </div>
         </div>
-
         <div class="stat-widget">
-          <div class="stat-icon success"><i class="fa-solid fa-door-open"></i></div>
+          <div class="stat-icon warning"><i class="fa-solid fa-clipboard-check"></i></div>
           <div class="stat-content">
-            <span class="stat-label">Available Room Pairs</span>
-            <span class="stat-value">${stats.availableRoomPairs || 0} / ${stats.totalRoomPairs || 0}</span>
+            <span class="stat-label">Entry Flow</span>
+            <span class="stat-value" style="font-size: 1rem;">Approvals</span>
           </div>
         </div>
-
         <div class="stat-widget">
-          <div class="stat-icon warning"><i class="fa-solid fa-check-double"></i></div>
+          <div class="stat-icon danger"><i class="fa-solid fa-screwdriver-wrench"></i></div>
           <div class="stat-content">
-            <span class="stat-label">Preferences Submitted</span>
-            <span class="stat-value">${stats.prefsSubmitted || 0}</span>
-          </div>
-        </div>
-
-        <div class="stat-widget">
-          <div class="stat-icon info"><i class="fa-solid fa-bed"></i></div>
-          <div class="stat-content">
-            <span class="stat-label">Allocated / Confirmed</span>
-            <span class="stat-value">${(stats.allocatedClusters || 0) + (stats.confirmedClusters || 0)}</span>
+            <span class="stat-label">Maintenance</span>
+            <span class="stat-value" style="font-size: 1rem;">Complaints</span>
           </div>
         </div>
       </div>
 
-      <!-- Allotment Phase Lifecycle Controller -->
-      <div class="card" style="margin-bottom: 24px; border-left: 4px solid ${sem.allotmentStatus === 'ACTIVE' ? 'var(--success)' : (sem.allotmentStatus === 'ENDED' ? 'var(--danger)' : 'var(--warning)')};">
-        <div class="card-header" style="padding-bottom: 8px;">
-          <h3 class="card-title">
-            <i class="fa-solid fa-flag-checkered"></i> Room Allotment Phase Lifecycle Controller
-          </h3>
+      <div class="card demo-focus-card">
+        <div class="card-header">
           <div>
-            ${sem.allotmentStatus === 'ACTIVE' ?
-        `<span class="status-pill success"><i class="fa-solid fa-circle-play"></i> Active (Phase ${sem.activePhase || 1})</span>` :
-        (sem.allotmentStatus === 'ENDED' ?
-          `<span class="status-pill danger"><i class="fa-solid fa-ban"></i> Ended / Closed</span>` :
-          `<span class="status-pill warning"><i class="fa-solid fa-pause"></i> Not Started</span>`)}
+            <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Daily Actions</h3>
+            <p class="card-subtitle">Use the room allocation engine and floor-map tools for this demo. Complaints and entry approvals are hidden.</p>
           </div>
         </div>
-        <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
-          ${sem.allotmentStatus === 'ACTIVE' ?
-        `The room allotment window is currently <strong>OPEN</strong>. Eligible students can form clusters and submit room-pair preferences. When the pre-allocation window concludes, click <strong>End Allotment Phase</strong>.` :
-        (sem.allotmentStatus === 'ENDED' ?
-          `The room allotment window is currently <strong>CLOSED</strong>. No new student clusters or preference submissions are accepted.` :
-          `The room allotment window is currently <strong>NOT STARTED / CLOSED</strong>. Students cannot form clusters or submit preferences until you officially start the allotment phase below.`)}
-        </p>
-        <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-          ${sem.allotmentStatus !== 'ACTIVE' ? `
-            <button class="btn btn-success btn-ct-start-allotment">
-              <i class="fa-solid fa-play"></i> ${sem.allotmentStatus === 'ENDED' ? 'Re-Open Allotment Phase' : 'Start Allotment Phase (Open for Students)'}
-            </button>
-          ` : `
-            <button class="btn btn-danger btn-ct-end-allotment">
-              <i class="fa-solid fa-stop"></i> End Allotment Phase (Close for Students)
-            </button>
-            <button class="btn btn-primary" id="btn-ct-form-clusters">
-              <i class="fa-solid fa-people-arrows"></i> Form & Lock Clusters (Phase 2)
-            </button>
-            <button class="btn btn-info" id="btn-ct-run-engine">
-              <i class="fa-solid fa-gears"></i> Run Allocation Engine
-            </button>
-          `}
-          <button class="btn btn-secondary btn-sm btn-ct-reset-allotment" title="Reset allotment state to Not Started">
-            <i class="fa-solid fa-rotate-left"></i> Reset to Not Started
+        <div class="demo-action-grid two-up">
+          <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-allocation">
+            <i class="fa-solid fa-arrows-split-up-and-left" style="color: var(--primary);"></i>
+            <span>Open Allocation Engine</span>
+          </button>
+          <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-map">
+            <i class="fa-solid fa-hotel" style="color: var(--info);"></i>
+            <span>Open Floor Plan Map</span>
           </button>
         </div>
       </div>
@@ -658,6 +613,25 @@ export class CaretakerPortal {
         if (tab === 'local-entry') this.loadLocalEntries();
       });
     });
+
+    const btnDashboardAllocation = document.getElementById('btn-ct-dashboard-allocation');
+    if (btnDashboardAllocation) {
+      btnDashboardAllocation.addEventListener('click', () => {
+        this.activeTab = 'allocation-center';
+        this.render();
+        this.attachEvents();
+      });
+    }
+
+    const btnDashboardMap = document.getElementById('btn-ct-dashboard-map');
+    if (btnDashboardMap) {
+      btnDashboardMap.addEventListener('click', () => {
+        this.activeTab = 'hostel-map';
+        this.render();
+        this.attachEvents();
+        this.initHostelMap();
+      });
+    }
 
     // Start Allotment Phase
     document.querySelectorAll('.btn-ct-start-allotment').forEach(btn => {

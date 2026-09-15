@@ -62,17 +62,24 @@ class SharpApp {
     document.body.className = savedTheme;
 
     const btnToggle = document.getElementById('btn-toggle-theme');
+    const syncThemeToggle = (theme) => {
+      if (!btnToggle) return;
+      const isDark = theme === 'theme-dark';
+      btnToggle.innerHTML = isDark
+        ? '<i class="fa-solid fa-sun"></i> Switch to Light Theme'
+        : '<i class="fa-solid fa-moon"></i> Switch to Dark Theme';
+      btnToggle.title = isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme';
+    };
+
     if (btnToggle) {
-      btnToggle.innerHTML = savedTheme === 'theme-dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-      btnToggle.title = savedTheme === 'theme-dark' ? 'Switch to Warm Light Theme' : 'Switch to Dark Theme';
+      syncThemeToggle(savedTheme);
       btnToggle.addEventListener('click', () => {
         const isDark = document.body.classList.contains('theme-dark');
         const nextTheme = isDark ? 'theme-light' : 'theme-dark';
         document.body.className = nextTheme;
         localStorage.setItem('sharp-theme', nextTheme);
         localStorage.setItem('sharp-theme-user-set', 'true');
-        btnToggle.innerHTML = nextTheme === 'theme-dark' ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
-        btnToggle.title = nextTheme === 'theme-dark' ? 'Switch to Warm Light Theme' : 'Switch to Dark Theme';
+        syncThemeToggle(nextTheme);
       });
     }
   }
@@ -507,8 +514,7 @@ class SharpApp {
     // Top Bar Register Button
     document.getElementById('btn-top-register')?.addEventListener('click', () => this.openRegisterModal());
 
-    // Header Logout Buttons
-    document.getElementById('btn-header-logout')?.addEventListener('click', () => this.logout());
+    // Header Logout Button
     document.getElementById('btn-logout')?.addEventListener('click', () => this.logout());
 
     // Notifications Dropdown Toggle

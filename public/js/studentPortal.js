@@ -59,12 +59,12 @@ export class StudentPortal {
       { id: 'dashboard', icon: 'fa-gauge', label: 'Dashboard' },
       { id: 'profile', icon: 'fa-user', label: 'Profile' },
       { id: 'allocation', icon: 'fa-sitemap', label: 'Room Allocation', badge: this.getPhaseBadge() },
-      { id: 'passes', icon: 'fa-id-card', label: 'My Passes' },
-      { id: 'requests', icon: 'fa-file-signature', label: 'Leave & Entry Requests' },
-      { id: 'complaints', icon: 'fa-wrench', label: 'Complaints' },
-      { id: 'hostel-info', icon: 'fa-hotel', label: 'Room & Hostel Info' },
-      { id: 'mess', icon: 'fa-utensils', label: 'Mess Feedback' }
+      { id: 'hostel-info', icon: 'fa-hotel', label: 'Room & Hostel Info' }
     ];
+
+    if (!navItems.some(item => item.id === this.activeTab)) {
+      this.activeTab = 'dashboard';
+    }
 
     const contentHtml = `
       <!-- Content Panes -->
@@ -80,24 +80,8 @@ export class StudentPortal {
         ${this.renderAllocationSection()}
       </div>
 
-      <div class="portal-pane ${this.activeTab === 'passes' ? 'active' : ''}" id="pane-passes">
-        ${this.renderPassesSection()}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'requests' ? 'active' : ''}" id="pane-requests">
-        ${this.renderRequestsSection()}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="pane-complaints">
-        ${this.renderComplaintsSection()}
-      </div>
-
       <div class="portal-pane ${this.activeTab === 'hostel-info' ? 'active' : ''}" id="pane-hostel-info">
         ${this.renderHostelInfoSection()}
-      </div>
-
-      <div class="portal-pane ${this.activeTab === 'mess' ? 'active' : ''}" id="pane-mess">
-        ${this.renderMessSection()}
       </div>
     `;
 
@@ -133,77 +117,48 @@ export class StudentPortal {
   // 1. Dashboard View
   renderDashboard() {
     return `
-      <div class="grid-4" style="margin-bottom: 24px;">
-        <div class="stat-widget">
-          <div class="stat-icon primary"><i class="fa-solid fa-graduation-cap"></i></div>
-          <div class="stat-content">
-            <span class="stat-label">Verified CGPA</span>
-            <span class="stat-value">${this.user.cgpa?.toFixed(2) || 'N/A'}</span>
-          </div>
-        </div>
-
+      <div class="grid-3" style="margin-bottom: 28px;">
         <div class="stat-widget">
           <div class="stat-icon info"><i class="fa-solid fa-hotel"></i></div>
           <div class="stat-content">
-            <span class="stat-label">Current Hostel</span>
+            <span class="stat-label">Current Room</span>
             <span class="stat-value" style="font-size: 1.2rem;">${this.user.currentHostel} - ${this.user.currentRoom}</span>
           </div>
         </div>
 
         <div class="stat-widget">
-          <div class="stat-icon warning"><i class="fa-solid fa-people-group"></i></div>
+          <div class="stat-icon primary"><i class="fa-solid fa-user-check"></i></div>
           <div class="stat-content">
-            <span class="stat-label">Cluster Status</span>
-            <span class="stat-value" style="font-size: 1.1rem;">${this.user.clusterId ? 'Cluster #' + this.clusterData?.cluster?.clusterNumber : 'Unassigned'}</span>
+            <span class="stat-label">Resident</span>
+            <span class="stat-value" style="font-size: 1.15rem;">${this.user.rollNumber || 'Verified'}</span>
           </div>
         </div>
 
         <div class="stat-widget">
-          <div class="stat-icon success"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="stat-icon success"><i class="fa-solid fa-layer-group"></i></div>
           <div class="stat-content">
             <span class="stat-label">Allocation Status</span>
-            <span class="stat-value" style="font-size: 1rem;">${this.user.allocationStatus}</span>
+            <span class="stat-value" style="font-size: 1rem;">${this.getPhaseBadge()}</span>
           </div>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><i class="fa-solid fa-bullhorn"></i> Semester Allocation Roadmap</h3>
-            <button class="btn btn-primary btn-sm" id="btn-goto-alloc">Go to Allocation</button>
-          </div>
-          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.88rem;">
-            Welcome to the <strong>SHARP Semester Room Allocation</strong>. Under our cluster-preserving rule, your social group of 4 remains permanently intact, and your combined cluster average CGPA determines eligible hostels and preference priority.
-          </p>
-          <div style="background: var(--bg-subtle); border: 1px solid var(--border-glow); padding: 14px; border-radius: var(--radius-md);">
-            <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary); margin-bottom: 4px;">
-              <i class="fa-solid fa-circle-check"></i> Core Invariant Guarantee
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">
-              "Students choose their social grouping first. Academic performance is then used to determine the hostel options available to that group and to resolve room-selection conflicts. CGPA must never be used to separate members of a valid cluster."
-            </p>
+      <div class="card demo-focus-card">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title"><i class="fa-solid fa-bed"></i> Room Demo Actions</h3>
+            <p class="card-subtitle">Use these room-focused flows for the demo. Passes, entry requests, complaints, and mess feedback are hidden.</p>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title"><i class="fa-solid fa-bolt"></i> Quick Resident Actions</h3>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <button class="btn btn-secondary" id="btn-quick-local-entry" style="justify-content: flex-start;">
-              <i class="fa-solid fa-person-walking-arrow-right" style="color: var(--info);"></i> Request Local Entry
-            </button>
-            <button class="btn btn-secondary" id="btn-quick-home-leave" style="justify-content: flex-start;">
-              <i class="fa-solid fa-house-chimney-user" style="color: var(--warning);"></i> Request Home Leave
-            </button>
-            <button class="btn btn-secondary" id="btn-quick-complaint" style="justify-content: flex-start;">
-              <i class="fa-solid fa-screwdriver-wrench" style="color: var(--danger);"></i> Report Maintenance
-            </button>
-            <button class="btn btn-secondary" id="btn-quick-mess" style="justify-content: flex-start;">
-              <i class="fa-solid fa-bowl-food" style="color: var(--success);"></i> Rate Today's Mess
-            </button>
-          </div>
+        <div class="demo-action-grid two-up">
+          <button class="btn btn-secondary btn-large-action" id="btn-goto-alloc">
+            <i class="fa-solid fa-sitemap" style="color: var(--primary);"></i>
+            <span>Open Room Allocation</span>
+          </button>
+          <button class="btn btn-secondary btn-large-action" id="btn-goto-hostel-info">
+            <i class="fa-solid fa-hotel" style="color: var(--info);"></i>
+            <span>View Room & Hostel Info</span>
+          </button>
         </div>
       </div>
     `;
@@ -1184,7 +1139,6 @@ export class StudentPortal {
         this.render();
         this.attachEvents();
 
-        if (tab === 'passes') this.loadPasses();
         if (tab === 'requests') this.loadRequestsHistory();
         if (tab === 'complaints') this.loadComplaints();
         if (tab === 'mess') this.loadMessFeedback();
@@ -1201,48 +1155,12 @@ export class StudentPortal {
       });
     }
 
-    const btnQuickLocal = document.getElementById('btn-quick-local-entry');
-    if (btnQuickLocal) {
-      btnQuickLocal.addEventListener('click', () => {
-        this.activeTab = 'requests';
+    const btnGotoHostelInfo = document.getElementById('btn-goto-hostel-info');
+    if (btnGotoHostelInfo) {
+      btnGotoHostelInfo.addEventListener('click', () => {
+        this.activeTab = 'hostel-info';
         this.render();
         this.attachEvents();
-        this.loadRequestsHistory();
-      });
-    }
-
-    const btnQuickHome = document.getElementById('btn-quick-home-leave');
-    if (btnQuickHome) {
-      btnQuickHome.addEventListener('click', () => {
-        this.activeTab = 'requests';
-        this.render();
-        this.attachEvents();
-        const typeSelect = document.getElementById('req-type');
-        if (typeSelect) {
-          typeSelect.value = 'HOME_LEAVE';
-          typeSelect.dispatchEvent(new Event('change'));
-        }
-        this.loadRequestsHistory();
-      });
-    }
-
-    const btnQuickComp = document.getElementById('btn-quick-complaint');
-    if (btnQuickComp) {
-      btnQuickComp.addEventListener('click', () => {
-        this.activeTab = 'complaints';
-        this.render();
-        this.attachEvents();
-        this.loadComplaints();
-      });
-    }
-
-    const btnQuickMess = document.getElementById('btn-quick-mess');
-    if (btnQuickMess) {
-      btnQuickMess.addEventListener('click', () => {
-        this.activeTab = 'mess';
-        this.render();
-        this.attachEvents();
-        this.loadMessFeedback();
       });
     }
 

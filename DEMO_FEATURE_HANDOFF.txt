@@ -1,0 +1,180 @@
+SHARP demo feature handoff
+=========================
+
+Current requested visibility state
+----------------------------------
+This file tracks the latest requested UI visibility changes exactly.
+
+Student portal visible features:
+- Dashboard
+- Profile
+- Room Allocation
+- Room & Hostel Info
+
+Student portal hidden features:
+- My Passes
+- Entry Requests
+- Complaints
+- Mess Feedback
+
+Parent portal visible features:
+- Child Overview
+- Report to Caretaker
+
+Parent portal hidden features:
+- Entry Approvals / Leave & Entry Approvals
+- Child's Digital Passes
+
+Caretaker portal visible features:
+- Dashboard
+- Room Allocation Engine
+- Hostel Floor Plan Map
+
+Caretaker portal hidden features:
+- Complaints
+- Entry Approvals / Local Entry Approvals
+
+Important constraint
+--------------------
+Do not remove code for hidden features unless explicitly requested. The latest request was
+only to hide/show navigation and visible panes. Underlying render methods, event handlers,
+API routes, and backend functionality should remain available for future restoration.
+
+Frontend dependency map
+-----------------------
+Main app entry:
+- public/index.html loads frontend assets.
+- public/js/app.js initializes the app, theme, role switching, and current portal.
+- public/css/styles.css contains shared theme, portal layout, cards, grids, and demo UI styles.
+
+Shared portal shell:
+- public/js/portalLayout.js
+  - renderPortalShell(...) renders left navigation and top bar.
+  - attachPortalShellEvents(...) wires sidebar/menu interactions.
+  - Each portal controls visible navigation through its navItems array.
+
+Student portal:
+- public/js/studentPortal.js
+  - Visible nav is defined in StudentPortal.render(), const navItems.
+  - Current visible nav item IDs: dashboard, profile, allocation, hostel-info.
+  - Hidden but retained:
+    - passes -> renderPassesSection(), loadPasses()
+    - requests -> renderRequestsSection(), loadRequestsHistory()
+    - complaints -> renderComplaintsSection(), loadComplaints()
+    - mess -> renderMessSection(), loadMessFeedback()
+  - Room allocation dependency:
+    - public/js/hostelMap.js powers the allocation/floor-map room picker.
+
+Parent portal:
+- public/js/parentPortal.js
+  - Visible nav is defined in ParentPortal.render(), const navItems.
+  - Current visible nav item IDs: child-overview, report-caretaker.
+  - Hidden but retained:
+    - leave-approvals -> renderApprovalsSection(), loadApprovals()
+    - child-passes -> renderChildPassesSection(), loadChildPasses()
+
+Caretaker portal:
+- public/js/caretakerPortal.js
+  - Visible nav is defined in CaretakerPortal.render(), const navItems.
+  - Current visible nav item IDs: dashboard, allocation-center, hostel-map.
+  - Hidden but retained:
+    - complaints -> renderComplaintsSection(), loadComplaints()
+    - local-entry -> renderLocalEntrySection(), loadLocalEntries()
+  - Room allocation dependencies:
+    - renderAllocationCenter()
+    - renderHostelMapSection(hostelName)
+    - initHostelMap()
+    - public/js/hostelMap.js
+
+Backend/API dependencies
+------------------------
+Room allocation and room info rely on existing API routes including:
+- /api/allocation/status
+- /api/allocation/cluster/:clusterId
+- /api/allocation/hostel-map/:hostelName
+- /api/allocation/form-clusters
+- /api/allocation/run-engine
+- /api/allocation/start-phase
+- /api/allocation/end-phase
+- /api/allocation/reset-phase
+- /api/admin/users
+
+Hidden pass/entry/complaint/mess features may rely on existing routes including:
+- /api/leaves/student/:studentId
+- /api/leaves/parent/:studentRollNumber
+- complaint-related routes in the server code
+- mess feedback routes in the server code
+
+How to restore currently hidden features
+----------------------------------------
+1. Student hidden features
+   In public/js/studentPortal.js, add desired nav items back into navItems and restore
+   matching portal panes in contentHtml. IDs must match exactly.
+
+   My Passes:
+   - nav id: passes
+   - pane calls renderPassesSection()
+   - tab click should call loadPasses()
+
+   Entry Requests:
+   - nav id: requests
+   - pane calls renderRequestsSection()
+   - tab click should call loadRequestsHistory()
+
+   Complaints:
+   - nav id: complaints
+   - pane calls renderComplaintsSection()
+   - tab click should call loadComplaints()
+
+   Mess Feedback:
+   - nav id: mess
+   - pane calls renderMessSection()
+   - tab click should call loadMessFeedback()
+
+2. Parent hidden features
+   In public/js/parentPortal.js:
+
+   Entry Approvals:
+   - nav id: leave-approvals
+   - pane calls renderApprovalsSection()
+   - tab click should call loadApprovals()
+
+   Child's Digital Passes:
+   - nav id: child-passes
+   - pane calls renderChildPassesSection()
+   - tab click should call loadChildPasses()
+
+3. Caretaker hidden features
+   In public/js/caretakerPortal.js:
+
+   Complaints:
+   - nav id: complaints
+   - pane calls renderComplaintsSection(hostelName)
+   - tab click should call loadComplaints()
+
+   Entry Approvals:
+   - nav id: local-entry
+   - pane calls renderLocalEntrySection(hostelName)
+   - tab click should call loadLocalEntries()
+
+Package/runtime dependencies
+----------------------------
+Node dependencies are declared in package.json and installed via package-lock.json:
+- express
+- cors
+
+Install dependencies:
+npm install
+
+Run app:
+npm start
+
+Run tests:
+npm test
+
+Notes for future agents
+-----------------------
+- Keep nav item IDs, pane active checks, and event handlers consistent.
+- Hidden features are intentionally retained in code.
+- public/ may be tracked or untracked depending on the workspace state; always check
+  git status before relying on git diff coverage.
