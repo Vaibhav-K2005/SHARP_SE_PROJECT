@@ -121,7 +121,7 @@ motivate the system:
 
 \textbf{Why this matters now (contextual relevance):} With a hostel population large enough
 that staff bandwidth is limited, even small tracking improvements (a unique complaint ID, an
-expiry rule, an SLA (Service Level Agreement) timer) can noticeably reduce unresolved cases and disputes.
+expiry rule, a Service Level Agreement (SLA) timer) can noticeably reduce unresolved cases and disputes.
 
 \section{Proposed Solution }
 \subsection{Overview}
@@ -137,7 +137,7 @@ students, parents, wardens, caretakers, mess staff and laundry staff, comprising
     after a set window (e.g. 48 hours) if payment is incomplete, preserving clusters without
     weakening the fee requirement.
     \item \textbf{Complaint/maintenance management:} an ID and priority per report, caretaker
-    assignment, and closure only after student verification, with SLA escalation to the
+    assignment, and closure only after student verification, with Service Level Agreement (SLA) escalation to the
     warden.
     \item \textbf{Laundry issue tracking:} reports of missing, damaged, wrong or stained items,
     or delays, logged against each submission for later aggregation.
@@ -148,13 +148,15 @@ students, parents, wardens, caretakers, mess staff and laundry staff, comprising
     \item Student files a complaint (category, preferred slot) and receives a complaint ID
     with an assigned priority.
     \item A caretaker is assigned and either agrees the proposed slot or offers an alternative;
-    an SLA timer runs independently and notifies the warden if breached.
+    a Service Level Agreement (SLA) timer runs independently and notifies the warden if breached.
     \item The caretaker completes the repair and the student verifies resolution.
     \item If verified, the complaint closes; if not, it reopens against the same ID.
 \end{enumerate}
 
 \begin{figure}[!t]
 \centering
+\textit{The following figure illustrates the complete lifecycle of a maintenance complaint, from submission and caretaker assignment to resolution, verification, and closure.}
+\vskip 0.5em
 \resizebox{0.95\columnwidth}{!}{%
 \begin{tikzpicture}[node distance=4mm]
 \node[term] (a) {Student files complaint\\{\tiny(category, preferred slot)}};
@@ -162,10 +164,10 @@ students, parents, wardens, caretakers, mess staff and laundry staff, comprising
 \node[proc, below=of b] (c) {Caretaker assigned};
 \node[dec, below=6.5mm of c] (d) {Slot agreed?};
 \node[proc, right=9mm of d] (e) {Caretaker proposes\\alternative slot};
-\node[proc, below=6.5mm of d] (f) {Work started\\$\rightarrow$ repair completed};
+\node[proc, below=6.5mm of d] (f) {Work started\\Repair completed};
 \node[dec, below=6.5mm of f] (g) {Student verifies\\resolution?};
 \node[term, below=6.5mm of g] (h) {Complaint closed};
-\node[esc, right=9mm of f] (s) {SLA timer breached\\$\rightarrow$ warden notified};
+\node[esc, right=9mm of f] (s) {Service Level Agreement (SLA) timer breached\\Warden notified};
 \draw[fl] (a) -- (b);
 \draw[fl] (b) -- (c);
 \draw[fl] (c) -- (d);
@@ -178,8 +180,7 @@ students, parents, wardens, caretakers, mess staff and laundry staff, comprising
 \draw[fl] (g.east) -- node[lbl,above,pos=0.62]{no: reopen} (g.east -| rr) |- ($(c.east)+(0,-1.5mm)$);
 \draw[fl, dashed] (f.east) -- (s.west);
 \end{tikzpicture}}
-\caption{Maintenance complaint lifecycle. Closure requires student verification, and a negative
-answer reopens the ticket against the same ID; an SLA timer escalates independently.}
+\caption{Figure 1: Maintenance Complaint Lifecycle.}
 \label{fig:complaint}
 \end{figure}
 
@@ -204,7 +205,7 @@ A layered architecture separates concerns across five tiers:
     \item \textbf{Application:} REST API endpoints, authentication (hashed credentials,
     tokens), and role-based access control.
     \item \textbf{Application Services:} the five modules (leave \& pass, mess feedback, allotment,
-    complaints \& SLA, laundry issues) plus notifications and analytics.
+    complaints \& Service Level Agreement (SLA), laundry issues) plus notifications and analytics.
     \item \textbf{Data:} users, requests, complaints and reports; status history and audit
     records; backup and recovery.
     \item \textbf{External services (optional):} email, SMS or push notifications.
@@ -225,7 +226,7 @@ We define success using measurable metrics tied to the core workflows.
 \begin{itemize}[leftmargin=0.7cm]
     \item \textbf{Complaint resolution time:} time between complaint filing and verified
     closure.
-    \item \textbf{SLA compliance:} share of complaints closed within the defined SLA window.
+    \item \textbf{Service Level Agreement (SLA) compliance:} share of complaints closed within the defined SLA window.
     \item Attribution: measured from database timestamps (filing, assignment, completion,
     verification).
 \end{itemize}
@@ -291,7 +292,7 @@ final stack choice costs nothing.
 \subsection{Initial deliverable }
 \begin{itemize}[leftmargin=0.7cm]
     \item Authentication and role-based access control for all six roles
-    \item Leave and visitor pass workflow: Student $\rightarrow$ Parent $\rightarrow$ Warden
+    \item Leave and visitor pass workflow: Student, Parent, and Warden
     \item Complaint lifecycle: filing, assignment, SLA timer, verified closure
     \item Basic logging and timestamps for resolution-time measurement
     \item CI: build + backend unit tests + linting
@@ -307,7 +308,7 @@ final stack choice costs nothing.
     \item Admin/warden analytics dashboard
 \end{itemize}
 
-\section{Risks and mitigations}
+\section{Risk Management}
 \begin{itemize}[leftmargin=0.7cm]
     \item \textbf{Unauthorised access:} mitigated by role-based authentication.
     \item \textbf{Forged parent approval:} mitigated by secure tokens plus warden
@@ -321,6 +322,6 @@ final stack choice costs nothing.
 \end{itemize}
 
 \section{Summary}
-This project proposes SHARP, a deployable web platform that integrates five disconnected hostel processes—leave and passes, mess feedback, room allotment, maintenance complaints, and laundry—into a single auditable system. The platform focuses on workflow correctness, traceability, scalability, and efficient process management. It supports phased implementation, CI/CD for frequent and reliable releases, and measurable performance through metrics such as complaint resolution time and SLA compliance.
+This project proposes SHARP, a web-based hostel administration platform that brings five hostel processes—leave and passes, mess feedback, room allotment, maintenance complaints, and laundry—into one system. The project will implement role-based access, digital workflows, complaint tracking, verification, notifications, and basic logging. The initial implementation will focus on authentication, leave and visitor pass management, and the maintenance complaint lifecycle, followed by the remaining modules. The aim is to make hostel processes easier to manage, track, and verify through a single digital platform.
 
 \end{document}

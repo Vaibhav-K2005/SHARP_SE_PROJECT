@@ -28,7 +28,6 @@
   },
   "eligibilityRules": [
     {
-      "id": "rule-3-m-high",
       "academicYear": 3,
       "gender": "Male",
       "minCgpa": 8.5,
@@ -37,64 +36,46 @@
         "Hostel A (Agira Hall)",
         "Hostel M (Anantam Hall)",
         "Hostel O",
-        "Hostel B",
-        "Hostel J",
-        "Hostel H"
+        "Hostel J"
       ],
-      "description": "Third Year Boys CGPA >= 8.50 (Hostels A, M, O, B, J, H)"
+      "description": "Year 3 Male (CGPA 8.50 - 10.00)",
+      "id": "eli-1789498285741-767"
     },
     {
-      "id": "rule-3-m-mid",
       "academicYear": 3,
       "gender": "Male",
-      "minCgpa": 7,
-      "maxCgpa": 8.49,
+      "minCgpa": 8,
+      "maxCgpa": 8.5,
       "eligibleHostels": [
         "Hostel M (Anantam Hall)",
         "Hostel O",
-        "Hostel B",
-        "Hostel J",
-        "Hostel H"
-      ],
-      "description": "Third Year Boys CGPA 7.00–8.49 (Hostels M, O, B, J, H)"
-    },
-    {
-      "id": "rule-3-m-low",
-      "academicYear": 3,
-      "gender": "Male",
-      "minCgpa": 0,
-      "maxCgpa": 6.99,
-      "eligibleHostels": [
-        "Hostel O",
-        "Hostel H"
-      ],
-      "description": "Third Year Boys CGPA < 7.00 (Hostels O, H)"
-    },
-    {
-      "id": "rule-3-f-all",
-      "academicYear": 3,
-      "gender": "Female",
-      "minCgpa": 0,
-      "maxCgpa": 10,
-      "eligibleHostels": [
-        "Hostel Q",
-        "Hostel N",
-        "Hostel E"
-      ],
-      "description": "Third Year Girls (Hostels Q, N, E)"
-    },
-    {
-      "id": "rule-2-m-all",
-      "academicYear": 2,
-      "gender": "Male",
-      "minCgpa": 0,
-      "maxCgpa": 10,
-      "eligibleHostels": [
-        "Hostel O",
-        "Hostel B",
         "Hostel J"
       ],
-      "description": "Second Year Boys (Hostels O, B, J)"
+      "description": "Year 3 Male (CGPA 8 - 8.5)",
+      "id": "eli-1789498314668-148"
+    },
+    {
+      "academicYear": 3,
+      "gender": "Male",
+      "minCgpa": 7,
+      "maxCgpa": 8,
+      "eligibleHostels": [
+        "Hostel O",
+        "Hostel J"
+      ],
+      "description": "Year 3 Male (CGPA 7 - 8)",
+      "id": "eli-1789498335894-979"
+    },
+    {
+      "academicYear": 3,
+      "gender": "Male",
+      "minCgpa": 0,
+      "maxCgpa": 7,
+      "eligibleHostels": [
+        "Hostel J"
+      ],
+      "description": "Year 3 Male (CGPA 0 - 7)",
+      "id": "eli-1789498340530-350"
     }
   ],
   "hostels": [
@@ -33311,6 +33292,102 @@
       "hostelId": "hostel-m",
       "hostelName": "Hostel M (Anantam Hall)",
       "phone": "+91 98765 43210"
+    },
+    {
+      "role": "student",
+      "fullName": "Vaibhav Kansal",
+      "rollNumber": "1024160097",
+      "email": "vaibhav@thapar.edu",
+      "academicYear": 3,
+      "admissionYear": 2024,
+      "course": "B.Tech Computer Science",
+      "gender": "Male",
+      "cgpa": 9.3,
+      "cgpaVerified": true,
+      "currentHostel": "Hostel M (Anantam Hall)",
+      "currentRoom": "326",
+      "currentRoommates": [],
+      "parentName": "Dr. Pradeep Kumar",
+      "parentEmail": "pkumar@gmail.com",
+      "parentPhone": "9868129707",
+      "phone": "9643729707",
+      "address": "New Delhi",
+      "verified": true,
+      "clusterId": null,
+      "allocationStatus": "PRE_ALLOCATION",
+      "id": "use-1789504441794-499"
+    },
+    {
+      "role": "student",
+      "fullName": "Ayush Kamboj",
+      "rollNumber": "1024160118",
+      "email": "ayush@thapar.edu",
+      "academicYear": 3,
+      "admissionYear": 2024,
+      "course": "B.Tech Computer Science",
+      "gender": "Male",
+      "cgpa": 9,
+      "cgpaVerified": true,
+      "currentHostel": "Hostel M (Anantam Hall)",
+      "currentRoom": "508",
+      "currentRoommates": [],
+      "parentName": "Ramesh",
+      "parentEmail": "r@gmail.com",
+      "parentPhone": "9876543122",
+      "phone": "9868104808",
+      "address": "Gurgaon",
+      "verified": true,
+      "clusterId": null,
+      "allocationStatus": "PRE_ALLOCATION",
+      "id": "use-1789504512121-301"
+    },
+    {
+      "role": "student",
+      "fullName": "Ali ekram",
+      "rollNumber": "1024160138",
+      "email": "ali@thapar.edu",
+      "academicYear": 3,
+      "admissionYear": 2024,
+      "course": "B.Tech Computer Science",
+      "gender": "Male",
+      "cgpa": 8.5,
+      "cgpaVerified": true,
+      "currentHostel": "Hostel M (Anantam Hall)",
+      "currentRoom": "510",
+      "currentRoommates": [],
+      "parentName": "mahesh",
+      "parentEmail": "m@gmail.com",
+      "parentPhone": "1243568796",
+      "phone": "9868264528",
+      "address": "Delhi",
+      "verified": true,
+      "clusterId": null,
+      "allocationStatus": "PRE_ALLOCATION",
+      "id": "use-1789504602623-333"
+    },
+    {
+      "role": "student",
+      "fullName": "Saket Gatyan",
+      "rollNumber": "1024160028",
+      "email": "saket@thapar.edu",
+      "academicYear": 3,
+      "admissionYear": 2024,
+      "course": "B.Tech Computer Science",
+      "gender": "Male",
+      "cgpa": 9.2,
+      "cgpaVerified": true,
+      "currentHostel": "Hostel M (Anantam Hall)",
+      "currentRoom": "332",
+      "currentRoommates": [],
+      "parentName": "c",
+      "parentEmail": "c@thapar.edu",
+      "parentPhone": "9876543218",
+      "phone": "9643729707",
+      "address": "delhi",
+      "verified": true,
+      "clusterId": null,
+      "allocationStatus": "PRE_ALLOCATION",
+      "id": "use-1789504664466-398"
     }
   ],
   "clusters": [],
