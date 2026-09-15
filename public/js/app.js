@@ -24,30 +24,9 @@ class SharpApp {
     await this.refreshHeaderBadge();
     this.renderDemoRolePills();
 
-    // Check for saved session
-    const savedUserJson = localStorage.getItem('sharp-currentUser');
-    if (savedUserJson) {
-      try {
-        const savedUser = JSON.parse(savedUserJson);
-        // Verify user still exists in DB
-        const allUsers = [
-          ...(this.demoUsers?.students || []),
-          ...(this.demoUsers?.parents || []),
-          ...(this.demoUsers?.caretakers || []),
-          ...(this.demoUsers?.admins || [])
-        ];
-        const matched = allUsers.find(u => u.id === savedUser.id || u.email === savedUser.email);
-        if (matched) {
-          this.switchUser(matched);
-          this.renderDemoRolePills();
-          return;
-        }
-      } catch (e) {
-        localStorage.removeItem('sharp-currentUser');
-      }
-    }
-
-    // Default to Home Page
+    // Always start on the login dashboard. The top debug switcher can still
+    // impersonate users quickly without preserving a portal session on refresh.
+    localStorage.removeItem('sharp-currentUser');
     this.renderHomePage();
     this.renderDemoRolePills();
   }
@@ -170,18 +149,47 @@ class SharpApp {
     });
 
     if (pills.length === 0) {
-      mount.innerHTML = `<span style="font-size: 0.72rem; color: var(--text-muted); padding: 4px 8px;">No registered accounts yet. Click <strong>+ Create User</strong> to begin.</span>`;
+      mount.innerHTML = `<span style="font-size: 0.72rem; color: var(--text-muted); padding: 4px 8px;">No debug accounts available yet. Register or reset seed data to add accounts.</span>`;
       return;
     }
 
-    mount.innerHTML = pills.map((p, idx) => `
-      <button class="demo-role-btn ${this.currentUser?.id === p.user?.id ? 'active' : ''}" data-idx="${idx}">
-        <i class="fa-solid ${p.icon}"></i> ${p.label}
-      </button>
-    `).join('');
+    const activeIndex = pills.findIndex(p => p.user?.id === this.currentUser?.id);
+    const activePill = activeIndex >= 0 ? pills[activeIndex] : null;
+
+    mount.innerHTML = `
+      <div class="demo-debug-dropdown" id="demo-debug-dropdown">
+        <button class="demo-debug-trigger" id="btn-debug-switcher" title="Debug-only quick user switcher">
+          <span><i class="fa-solid fa-bug"></i> Debug User</span>
+          <strong>${activePill ? activePill.label : 'Select account'}</strong>
+          <i class="fa-solid fa-chevron-down"></i>
+        </button>
+        <div class="demo-debug-menu" id="demo-debug-menu">
+          ${pills.map((p, idx) => `
+            <button class="demo-role-btn ${this.currentUser?.id === p.user?.id ? 'active' : ''}" data-idx="${idx}" title="Debug login as ${p.user.email}">
+              <span><i class="fa-solid ${p.icon}"></i> ${p.label}</span>
+              <small>${p.user.email}</small>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+
+    const dropdown = mount.querySelector('#demo-debug-dropdown');
+    const trigger = mount.querySelector('#btn-debug-switcher');
+    trigger?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const willShow = !dropdown?.classList.contains('show');
+      dropdown?.classList.toggle('show', willShow);
+      if (willShow) {
+        setTimeout(() => {
+          document.addEventListener('click', () => dropdown?.classList.remove('show'), { once: true });
+        }, 0);
+      }
+    });
 
     mount.querySelectorAll('.demo-role-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (event) => {
+        event.stopPropagation();
         const idx = Number(btn.getAttribute('data-idx'));
         if (pills[idx]?.user) {
           this.switchUser(pills[idx].user);
@@ -189,6 +197,7 @@ class SharpApp {
         }
       });
     });
+
   }
 
   // ═══════════════════════════════════════════════════════
@@ -212,21 +221,21 @@ class SharpApp {
         <!-- Hero Section -->
         <div class="home-hero">
           <div class="hero-institute-tag">
-            <i class="fa-solid fa-graduation-cap"></i> Thapar Institute of Engineering & Technology
+            <i class="fa-solid fa-right-to-bracket"></i> SHARP Login Dashboard
           </div>
           <h1 class="hero-title">
-            Smart Hostel Allocation & <br>
-            <span class="hero-gradient-text">Resident Portal (SHARP)</span>
+            Sign in to your <br>
+            <span class="hero-gradient-text">Hostel Portal</span>
           </h1>
           <p class="hero-desc">
-            The official centralized accommodation management platform. Featuring transparent 8-phase cluster-preserving room allocation on an airline-style visual map, digital QR gate passes, instant parent home-leave approvals, and real-time caretaker hostel management across 11 campus halls.
+            Choose a role to sign in or create a demo account. The debug switcher in the top bar is only for quick testing and bypasses manual login.
           </p>
           <div class="hero-actions">
-            <button class="hero-btn-primary" id="btn-hero-register">
-              <i class="fa-solid fa-user-plus"></i> Create Account / Register
+            <button class="hero-btn-primary" id="btn-hero-login">
+              <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
             </button>
-            <button class="hero-btn-secondary" id="btn-hero-login">
-              <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In to Portal
+            <button class="hero-btn-secondary" id="btn-hero-register">
+              <i class="fa-solid fa-user-plus"></i> Register New User
             </button>
           </div>
         </div>
@@ -511,9 +520,6 @@ class SharpApp {
     document.getElementById('btn-header-login')?.addEventListener('click', () => this.openLoginModal());
     document.getElementById('btn-header-register')?.addEventListener('click', () => this.openRegisterModal());
 
-    // Top Bar Register Button
-    document.getElementById('btn-top-register')?.addEventListener('click', () => this.openRegisterModal());
-
     // Header Logout Button
     document.getElementById('btn-logout')?.addEventListener('click', () => this.logout());
 
@@ -695,7 +701,7 @@ class SharpApp {
           <div class="form-group">
             <label class="form-label">Official Thapar Email Address</label>
             <div style="display: flex; gap: 8px;">
-              <input type="email" id="student-thapar-email" class="form-input" placeholder="e.g. vkansal_be23@thapar.edu" style="font-family: var(--font-mono);">
+              <input type="email" id="student-thapar-email" class="form-input" placeholder="e.g. student.demo@thapar.edu" style="font-family: var(--font-mono);">
               <button class="btn btn-primary btn-sm" id="btn-student-send-otp" style="white-space: nowrap;">
                 <i class="fa-solid fa-paper-plane"></i> Send OTP
               </button>
@@ -734,11 +740,11 @@ class SharpApp {
             <div class="grid-2" style="margin-top: 10px;">
               <div class="form-group">
                 <label class="form-label">Student Full Name *</label>
-                <input type="text" id="stu-fullname" class="form-input" placeholder="e.g. Vaibhav Kansal">
+                <input type="text" id="stu-fullname" class="form-input" placeholder="e.g. Aarav Mehta">
               </div>
               <div class="form-group">
                 <label class="form-label">10-Digit Roll Number *</label>
-                <input type="text" id="stu-rollno" class="form-input" placeholder="e.g. 1024160097" style="font-family: var(--font-mono);">
+                <input type="text" id="stu-rollno" class="form-input" placeholder="e.g. 1024260001" style="font-family: var(--font-mono);">
                 <small id="stu-roll-derived-hint" style="color: var(--primary); font-size: 0.72rem; display: block; margin-top: 4px;"></small>
               </div>
             </div>
@@ -803,11 +809,11 @@ class SharpApp {
             <div class="grid-2" style="margin-top: 10px;">
               <div class="form-group">
                 <label class="form-label">Parent / Guardian Full Name *</label>
-                <input type="text" id="stu-parent-name" class="form-input" placeholder="e.g. Mr. Rajiv Kansal">
+                <input type="text" id="stu-parent-name" class="form-input" placeholder="e.g. Mr. Demo Guardian">
               </div>
               <div class="form-group">
                 <label class="form-label">Parent Email Address *</label>
-                <input type="email" id="stu-parent-email" class="form-input" placeholder="e.g. parent.kansal@gmail.com">
+                <input type="email" id="stu-parent-email" class="form-input" placeholder="e.g. guardian.demo@example.com">
               </div>
             </div>
             <div class="form-group">
@@ -847,7 +853,7 @@ class SharpApp {
           <div class="form-group">
             <label class="form-label">Student's Official Roll Number *</label>
             <div style="display: flex; gap: 8px;">
-              <input type="text" id="parent-student-roll" class="form-input" placeholder="e.g. 1024160097" style="font-family: var(--font-mono); text-transform: uppercase;">
+              <input type="text" id="parent-student-roll" class="form-input" placeholder="e.g. 1024260001" style="font-family: var(--font-mono); text-transform: uppercase;">
               <button class="btn btn-secondary btn-sm" id="btn-parent-lookup-student" style="white-space: nowrap;">
                 <i class="fa-solid fa-magnifying-glass"></i> Verify Student
               </button>
@@ -861,11 +867,11 @@ class SharpApp {
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">Parent Full Name *</label>
-              <input type="text" id="parent-fullname" class="form-input" placeholder="e.g. Mr. Rajiv Kansal">
+              <input type="text" id="parent-fullname" class="form-input" placeholder="e.g. Mr. Demo Guardian">
             </div>
             <div class="form-group">
               <label class="form-label">Parent Email ID *</label>
-              <input type="email" id="parent-email" class="form-input" placeholder="e.g. parent.kansal@gmail.com">
+              <input type="email" id="parent-email" class="form-input" placeholder="e.g. guardian.demo@example.com">
             </div>
           </div>
 
@@ -893,11 +899,11 @@ class SharpApp {
           <div class="grid-2">
             <div class="form-group">
               <label class="form-label">Caretaker Full Name *</label>
-              <input type="text" id="caretaker-fullname" class="form-input" placeholder="e.g. Mr. Rakesh Sharma">
+              <input type="text" id="caretaker-fullname" class="form-input" placeholder="e.g. Ms. Demo Caretaker">
             </div>
             <div class="form-group">
               <label class="form-label">Official Email ID *</label>
-              <input type="email" id="caretaker-email" class="form-input" placeholder="e.g. caretaker.m@thapar.edu">
+              <input type="email" id="caretaker-email" class="form-input" placeholder="e.g. caretaker.demo@thapar.edu">
             </div>
           </div>
 

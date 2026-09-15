@@ -114,7 +114,7 @@ router.post('/semesters/update', (req, res) => {
   res.json({ success: true, semester: updated });
 });
 
-// 6. Allocation Engine Configuration (Section 48)
+// 6. Hostel Allocation Configuration (Section 48)
 router.get('/config', (req, res) => {
   res.json({ config: db.getConfig() });
 });

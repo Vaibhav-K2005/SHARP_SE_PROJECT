@@ -25,26 +25,6 @@
 
 <body class="theme-light">
 
-  <!-- Top Real Database Bar & Account Switcher -->
-  <div id="demo-bar" class="demo-bar">
-    <div class="demo-bar-inner">
-
-      <div class="demo-role-pills" id="demo-role-pills">
-        <!-- Injected dynamically via JS: newly registered students, parents, caretakers, admin -->
-      </div>
-      <div class="demo-actions">
-        <button id="btn-top-register" class="btn-demo-action btn-top-register"
-          title="Create New Student, Parent, or Caretaker">
-          <i class="fa-solid fa-user-plus"></i> + Create User
-        </button>
-        <button id="btn-reset-data" class="btn-demo-action" title="Clear and reset database to fresh state">
-          <i class="fa-solid fa-rotate-left"></i> Reset Clean DB
-        </button>
-
-      </div>
-    </div>
-  </div>
-
   <!-- Universal Header Navigation -->
   <header class="app-header">
     <div class="header-container">
@@ -67,6 +47,15 @@
       </div>
 
       <div class="header-right">
+        <div class="debug-header-tools">
+          <div class="demo-role-pills" id="demo-role-pills">
+            <!-- Debug user switcher injected dynamically via JS -->
+          </div>
+          <button id="btn-reset-data" class="btn-demo-action btn-reset-compact" title="Reset clean demo database">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+
         <!-- Guest Auth Controls (shown when not logged in) -->
         <div class="header-auth-buttons" id="header-auth-guest" style="display: flex;">
           <button id="btn-header-login" class="btn-header-login">

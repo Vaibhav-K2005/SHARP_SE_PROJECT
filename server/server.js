@@ -1,4 +1,5 @@
 // server/server.js
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -13,6 +14,8 @@ import adminRoutes from './routes/admin.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+await db.ready;
 
 const app = express();
 const PORT = process.env.PORT || 3000;

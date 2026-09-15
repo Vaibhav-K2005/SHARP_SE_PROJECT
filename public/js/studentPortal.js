@@ -10,6 +10,7 @@ export class StudentPortal {
     this.clusterData = null;
     this.hostelMapInstance = null;
     this.selectedPreferences = [];
+    this.clusterInvitations = [];
   }
 
   async init() {
@@ -33,6 +34,12 @@ export class StudentPortal {
         const prefs = this.allocationStatusData.studentPreferences || [];
         const cleanRoll = this.user.rollNumber?.toUpperCase();
         this.submittedPref = prefs.find(p => p.rollNumber?.toUpperCase() === cleanRoll) || null;
+      }
+
+      const invitationRes = await fetch(`/api/allocation/cluster-invitations/${this.user.id}`);
+      if (invitationRes.ok) {
+        const invitationData = await invitationRes.json();
+        this.clusterInvitations = invitationData.invitations || [];
       }
 
       // Fetch cluster data if clustered
@@ -89,7 +96,7 @@ export class StudentPortal {
       roleTitle: 'Student Portal',
       roleIcon: 'fa-graduation-cap',
       userName: this.user.fullName,
-      userSubtitle: `${this.user.rollNumber || 'Student'} • ${this.user.currentHostel || 'Hostel'}`,
+      userSubtitle: `${this.user.rollNumber || 'Student'} \u2022 ${this.user.currentHostel || 'Hostel'}`,
       navItems,
       activeTab: this.activeTab,
       rightActionsHtml: `<span class="badge badge-info" style="font-size:0.75rem; font-weight:700;"><i class="fa-solid fa-graduation-cap"></i> ${this.user.academicYear ? 'Year ' + this.user.academicYear : 'B.Tech'}</span>`,
@@ -188,7 +195,7 @@ export class StudentPortal {
           </div>
           <div class="form-group">
             <label class="form-label">Academic Year & Program</label>
-            <input type="text" class="form-input" value="Year ${this.user.academicYear} — ${this.user.course}" disabled>
+            <input type="text" class="form-input" value="Year ${this.user.academicYear} \u2014 ${this.user.course}" disabled>
           </div>
           <div class="form-group">
             <label class="form-label">Gender</label>
@@ -251,6 +258,7 @@ export class StudentPortal {
 
     const cluster = this.clusterData?.cluster;
     const isLeader = cluster && cluster.leaderId === this.user.id;
+    const pendingInvitation = this.clusterInvitations?.[0];
     const sem = this.allocationStatusData?.semester || {};
     const allotmentStatus = sem.allotmentStatus || 'NOT_STARTED';
 
@@ -335,6 +343,7 @@ export class StudentPortal {
         </div>
       </div>
 
+      ${pendingInvitation ? this.renderClusterInvitationPrompt(pendingInvitation) : ''}
       ${cluster ? 
         this.renderFormedClusterWorkflow(cluster, isLeader) : 
         (this.submittedPref ? 
@@ -362,9 +371,9 @@ export class StudentPortal {
             <label style="display: flex; align-items: flex-start; gap: 12px; background: var(--bg-card-hover); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); cursor: pointer;">
               <input type="radio" name="alloc-option" value="OPTION_C" checked style="margin-top: 4px;">
               <div>
-                <strong>Option C — Complete Cluster (4 Students)</strong>
+                <strong>Option C \u2014 Complete Cluster (4 Students)</strong>
                 <div style="font-size: 0.78rem; color: var(--text-secondary);">
-                  Specify all 4 student roll numbers who will stay together. Submitting immediately forms and locks your 4-student cluster!
+                  Specify all 4 student roll numbers. Submitting sends approval prompts to invited members; the cluster locks only after everyone approves.
                 </div>
               </div>
             </label>
@@ -372,7 +381,7 @@ export class StudentPortal {
             <label style="display: flex; align-items: flex-start; gap: 12px; background: var(--bg-card-hover); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); cursor: pointer;">
               <input type="radio" name="alloc-option" value="OPTION_B" style="margin-top: 4px;">
               <div>
-                <strong>Option B — Select One Roommate (Mutual Match)</strong>
+                <strong>Option B \u2014 Select One Roommate (Mutual Match)</strong>
                 <div style="font-size: 0.78rem; color: var(--text-secondary);">
                   Select 1 roommate. If both select each other, you stay together, and SHARP pairs you with another compatible pair.
                 </div>
@@ -382,7 +391,7 @@ export class StudentPortal {
             <label style="display: flex; align-items: flex-start; gap: 12px; background: var(--bg-card-hover); border: 1px solid var(--border-color); padding: 14px; border-radius: var(--radius-md); cursor: pointer;">
               <input type="radio" name="alloc-option" value="OPTION_A" style="margin-top: 4px;">
               <div>
-                <strong>Option A — Random Allocation</strong>
+                <strong>Option A \u2014 Random Allocation</strong>
                 <div style="font-size: 0.78rem; color: var(--text-secondary);">
                   No preferred roommate. The system groups you automatically with other compatible students.
                 </div>
@@ -396,12 +405,12 @@ export class StudentPortal {
             <label class="form-label">Cluster Members' Roll Numbers (Including Yours)</label>
             <div class="grid-2">
               <input type="text" id="roll-1" class="form-input" value="${this.user.rollNumber}" disabled>
-              <input type="text" id="roll-2" class="form-input" placeholder="Roll 2 (e.g. 1024160002)">
-              <input type="text" id="roll-3" class="form-input" placeholder="Roll 3 (e.g. 1024160003)">
-              <input type="text" id="roll-4" class="form-input" placeholder="Roll 4 (e.g. 1024160004)">
+              <input type="text" id="roll-2" class="form-input" placeholder="Roll 2 (e.g. 1024260002)">
+              <input type="text" id="roll-3" class="form-input" placeholder="Roll 3 (e.g. 1024260003)">
+              <input type="text" id="roll-4" class="form-input" placeholder="Roll 4 (e.g. 1024260004)">
             </div>
             <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">
-              Entering 4 distinct roll numbers will instantly form your group's cluster.
+              Entering 4 distinct registered roll numbers will send approval requests to the invited students.
             </span>
           </div>
         </div>
@@ -409,7 +418,7 @@ export class StudentPortal {
         <div id="option-b-fields" style="display: none;">
           <div class="form-group">
             <label class="form-label">Preferred Roommate's Roll Number</label>
-            <input type="text" id="partner-roll" class="form-input" placeholder="e.g. 1024160002">
+            <input type="text" id="partner-roll" class="form-input" placeholder="e.g. 1024260002">
           </div>
         </div>
 
@@ -436,7 +445,7 @@ export class StudentPortal {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <span style="font-size: 0.85rem; color: var(--text-secondary);">Registered Grouping Method:</span>
             <strong style="color: var(--primary); font-size: 0.95rem;">
-              ${isOptionB ? 'Option B — Select One Roommate (Mutual Match)' : (isOptionA ? 'Option A — Random Allocation' : 'Option C — 4-Student Cluster')}
+              ${isOptionB ? 'Option B \u2014 Select One Roommate (Mutual Match)' : (isOptionA ? 'Option A \u2014 Random Allocation' : 'Option C \u2014 4-Student Cluster')}
             </strong>
           </div>
 
@@ -450,7 +459,7 @@ export class StudentPortal {
             </p>
           ` : `
             <p style="font-size: 0.8rem; color: var(--text-muted); margin: 0;">
-              You have chosen random allocation. The Caretaker and allocation engine will automatically group you with 3 compatible students sharing your year and gender during Phase 2.
+              You have chosen random allocation. The Caretaker and hostel allocation system will automatically group you with 3 compatible students sharing your year and gender during Phase 2.
             </p>
           `}
         </div>
@@ -462,6 +471,58 @@ export class StudentPortal {
           <button class="btn btn-secondary btn-sm" id="btn-change-preference">
             <i class="fa-solid fa-pen-to-square"></i> Change / Re-submit Preference
           </button>
+        </div>
+      </div>
+    `;
+  }
+
+  renderClusterInvitationPrompt(cluster) {
+    const leaderName = cluster.pendingMembers?.find(m => m.studentId === cluster.leaderId)?.fullName || 'Cluster leader';
+    return `
+      <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--warning);">
+        <div class="card-header">
+          <div>
+            <h3 class="card-title"><i class="fa-solid fa-user-check"></i> Cluster Invitation Pending</h3>
+            <p class="card-subtitle">${leaderName} invited you to Cluster #${cluster.clusterNumber}. Approve to join or deny so the leader can invite another student.</p>
+          </div>
+          <span class="status-pill warning">Action Required</span>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn btn-success btn-cluster-invite-response" data-cluster-id="${cluster.id}" data-decision="APPROVED">
+            <i class="fa-solid fa-check"></i> Approve Invitation
+          </button>
+          <button class="btn btn-danger btn-cluster-invite-response" data-cluster-id="${cluster.id}" data-decision="DENIED">
+            <i class="fa-solid fa-xmark"></i> Deny Invitation
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  renderClusterApprovalStatus(cluster, isLeader) {
+    const pendingMembers = cluster.pendingMembers || [];
+    if (pendingMembers.length === 0) return '';
+    return `
+      <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;">
+        <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
+          Cluster Approval Status
+        </span>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+          ${pendingMembers.map(member => `
+            <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+              <div>
+                <strong>${member.fullName}</strong>
+                <span style="color: var(--text-muted); font-size: 0.78rem;">${member.rollNumber}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="status-pill ${member.status === 'APPROVED' ? 'success' : (member.status === 'DENIED' ? 'danger' : 'warning')}">${member.status}</span>
+                ${isLeader && member.studentId !== cluster.leaderId && member.status !== 'APPROVED' ? `
+                  <input type="text" class="form-input cluster-replacement-roll" data-old-roll="${member.rollNumber}" placeholder="Replacement roll" style="width: 150px; padding: 6px 8px; font-family: var(--font-mono);">
+                  <button class="btn btn-secondary btn-sm btn-replace-cluster-member" data-old-roll="${member.rollNumber}">Replace</button>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
     `;
@@ -483,7 +544,7 @@ export class StudentPortal {
               </h3>
               <span class="status-pill success">${cluster.status}</span>
             </div>
-            ${isLeader && cluster.status === 'FORMED' ? `
+            ${isLeader && !['ALLOCATED', 'CONFIRMED'].includes(cluster.status) ? `
               <button class="btn btn-secondary btn-sm" id="btn-dissolve-cluster" style="padding: 4px 10px; font-size: 0.75rem; color: var(--danger); border-color: var(--danger-border);" title="Dissolve this cluster and re-form if needed">
                 <i class="fa-solid fa-user-xmark"></i> Dissolve Cluster
               </button>
@@ -500,7 +561,10 @@ export class StudentPortal {
             </div>
           </div>
 
+          ${this.renderClusterApprovalStatus(cluster, isLeader)}
+
           <!-- Eligible Hostels (Section 21-22) -->
+          ${cluster.status === 'FORMED' || cluster.eligibleHostels?.length ? `
           <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px;">
             <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">
               Cluster-Level Eligible Hostels:
@@ -509,6 +573,11 @@ export class StudentPortal {
               ${cluster.eligibleHostels.map(h => `<span class="status-pill info">${h}</span>`).join('')}
             </div>
           </div>
+          ` : `
+            <div style="background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning); padding: 12px; border-radius: var(--radius-md); margin-bottom: 16px; font-size: 0.86rem;">
+              <i class="fa-solid fa-hourglass-half"></i> Eligible hostels unlock after every invited student approves the cluster.
+            </div>
+          `}
 
           <!-- Cluster Members Table -->
           <div class="table-wrapper">
@@ -573,20 +642,20 @@ export class StudentPortal {
           ` : cluster.status === 'ALLOCATED' ? `
             <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning-border); padding: 18px; border-radius: var(--radius-md); margin-bottom: 16px;">
               <div style="display: flex; align-items: center; gap: 10px; color: var(--warning); font-weight: 700; margin-bottom: 6px;">
-                <i class="fa-solid fa-hourglass-half fa-lg"></i> Room Pair Allocated — Pending Fee Payment
+                <i class="fa-solid fa-hourglass-half fa-lg"></i> Room Pair Allocated \u2014 Pending Fee Payment
               </div>
               <p style="font-size: 0.85rem; color: var(--text-primary); margin: 0 0 10px;">
                 Your cluster has been allotted Room Pair <strong>${cluster.assignedRoomPairNumber}</strong> in <strong>${cluster.assignedHostel}</strong>!
                 To confirm this allotment into your permanent residency record, complete the semester hostel & mess fee payment.
               </p>
               <button class="btn btn-success" id="btn-pay-fees-modal">
-                <i class="fa-solid fa-credit-card"></i> Pay Hostel & Mess Fees (₹80,000)
+                <i class="fa-solid fa-credit-card"></i> Pay Hostel & Mess Fees (\u20b980,000)
               </button>
             </div>
           ` : `
             <div style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
               ${cluster.preferences?.length > 0 ? 
-                `<p>Preferences submitted! Awaiting caretaker to trigger conflict resolution and allocation engine.</p>` : 
+                `<p>Preferences submitted! Awaiting caretaker to trigger conflict resolution and allocation.</p>` : 
                 `<p>Your cluster leader must select 3 room-pair preferences on the visual hostel map below.</p>`}
             </div>
           `}
@@ -609,6 +678,7 @@ export class StudentPortal {
         </div>
       </div>
 
+      ${cluster.status === 'FORMED' || cluster.status === 'ALLOCATED' || cluster.status === 'CONFIRMED' || cluster.preferences?.length ? `
       <!-- Phase 4: Visual Hostel Map & Room Selection -->
       <div class="card">
         <div class="card-header">
@@ -638,6 +708,15 @@ export class StudentPortal {
           </div>
         ` : ''}
       </div>
+      ` : `
+        <div class="card" style="text-align: center; padding: 28px;">
+          <div style="font-size: 2rem; color: var(--warning); margin-bottom: 10px;"><i class="fa-solid fa-user-clock"></i></div>
+          <h3 style="margin-bottom: 8px;">Waiting for Cluster Approvals</h3>
+          <p style="color: var(--text-secondary); max-width: 560px; margin: 0 auto; font-size: 0.9rem;">
+            Room selection is locked until every invited student approves the cluster. The group leader can replace denied or pending invitees above.
+          </p>
+        </div>
+      `}
     `;
   }
 
@@ -726,7 +805,7 @@ export class StudentPortal {
               </div>
               <div class="pass-field">
                 <span class="pass-field-label">Valid Timings / Dates</span>
-                <div class="pass-field-value">${p.date} (${p.startTime} — ${p.endTime})</div>
+                <div class="pass-field-value">${p.date} (${p.startTime} \u2014 ${p.endTime})</div>
               </div>
               <div class="pass-field">
                 <span class="pass-field-label">Purpose</span>
@@ -1065,11 +1144,11 @@ export class StudentPortal {
           <div class="form-group">
             <label class="form-label">Rating (1 to 5 Stars)</label>
             <select id="mess-rating" class="form-select">
-              <option value="5">⭐⭐⭐⭐⭐ Excellent (5/5)</option>
-              <option value="4" selected>⭐⭐⭐⭐ Good (4/5)</option>
-              <option value="3">⭐⭐⭐ Average (3/5)</option>
-              <option value="2">⭐⭐ Poor (2/5)</option>
-              <option value="1">⭐ Unsatisfactory (1/5)</option>
+              <option value="5">\u2b50\u2b50\u2b50\u2b50\u2b50 Excellent (5/5)</option>
+              <option value="4" selected>\u2b50\u2b50\u2b50\u2b50 Good (4/5)</option>
+              <option value="3">\u2b50\u2b50\u2b50 Average (3/5)</option>
+              <option value="2">\u2b50\u2b50 Poor (2/5)</option>
+              <option value="1">\u2b50 Unsatisfactory (1/5)</option>
             </select>
           </div>
 
@@ -1112,8 +1191,8 @@ export class StudentPortal {
       mount.innerHTML = feedback.slice(0, 5).map(f => `
         <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-            <strong>${f.mealType} — ${f.category}</strong>
-            <span style="color: var(--warning); font-size: 0.85rem;">${'★'.repeat(f.rating)}${'☆'.repeat(5 - f.rating)}</span>
+            <strong>${f.mealType} \u2014 ${f.category}</strong>
+            <span style="color: var(--warning); font-size: 0.85rem;">${'\u2605'.repeat(f.rating)}${'\u2606'.repeat(5 - f.rating)}</span>
           </div>
           <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0 0 6px;">"${f.comments}"</p>
           <div style="font-size: 0.7rem; color: var(--text-muted); display: flex; justify-content: space-between;">
@@ -1245,6 +1324,62 @@ export class StudentPortal {
         this.attachEvents();
       });
     }
+
+    document.querySelectorAll('.btn-cluster-invite-response').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        try {
+          const res = await fetch('/api/allocation/cluster-invitations/respond', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clusterId: btn.getAttribute('data-cluster-id'),
+              studentId: this.user.id,
+              decision: btn.getAttribute('data-decision')
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          this.app.toast(data.message, 'success');
+          await this.fetchStudentData();
+          this.render();
+          this.attachEvents();
+        } catch (err) {
+          this.app.toast(err.message, 'danger');
+        }
+      });
+    });
+
+    document.querySelectorAll('.btn-replace-cluster-member').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const oldRoll = btn.getAttribute('data-old-roll');
+        const input = document.querySelector(`.cluster-replacement-roll[data-old-roll="${oldRoll}"]`);
+        const newRoll = input?.value.trim();
+        if (!newRoll) {
+          this.app.toast('Enter a replacement student roll number', 'warning');
+          return;
+        }
+        try {
+          const res = await fetch('/api/allocation/cluster-invitations/replace-member', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              clusterId: this.clusterData.cluster.id,
+              leaderId: this.user.id,
+              oldRollNumber: oldRoll,
+              newRollNumber: newRoll
+            })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error);
+          this.app.toast(data.message, 'success');
+          await this.fetchStudentData();
+          this.render();
+          this.attachEvents();
+        } catch (err) {
+          this.app.toast(err.message, 'danger');
+        }
+      });
+    });
 
     // Dissolve Cluster (Leader)
     const btnDissolveCluster = document.getElementById('btn-dissolve-cluster');
@@ -1491,12 +1626,12 @@ export class StudentPortal {
       <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 16px;">
         Every cluster has one designated leader responsible for submitting room preferences. Another member can be designated leader if needed (Section 26).
       </p>
-      <div class="form-group">
-        <label class="form-label">Select New Cluster Leader</label>
-        <select id="modal-select-new-leader" class="form-select">
+      <div class=\"form-group\">
+        <label class=\"form-label\">Select New Cluster Leader</label>
+        <select id=\"modal-select-new-leader\" class=\"form-select\">
           ${members.map(m => `
-            <option value="${m.id}" ${m.id === this.clusterData.cluster.leaderId ? 'selected' : ''}>
-              ${m.fullName} (${m.rollNumber}) ${m.id === this.clusterData.cluster.leaderId ? '— [Current Leader]' : ''}
+            <option value=\"${m.id}\" ${m.id === this.clusterData.cluster.leaderId ? 'selected' : ''}>
+              ${m.fullName} (${m.rollNumber}) ${m.id === this.clusterData.cluster.leaderId ? '\u2014 [Current Leader]' : ''}
             </option>
           `).join('')}
         </select>
@@ -1538,42 +1673,42 @@ export class StudentPortal {
   openPaymentGatewayModal() {
     const cluster = this.clusterData.cluster;
     const modalBody = `
-      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success-border); padding: 14px; border-radius: var(--radius-md); margin-bottom: 18px;">
-        <h4 style="color: var(--success); margin-bottom: 4px;">Hostel Allotment Secured</h4>
-        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">
+      <div style=\"background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success-border); padding: 14px; border-radius: var(--radius-md); margin-bottom: 18px;\">
+        <h4 style=\"color: var(--success); margin-bottom: 4px;\">Hostel Allotment Secured</h4>
+        <p style=\"font-size: 0.82rem; color: var(--text-secondary); margin: 0;\">
           Room Pair <strong>${cluster.assignedRoomPairNumber}</strong> (${cluster.assignedHostel}).
         </p>
       </div>
 
-      <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;">
+      <div style=\"background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 18px;\">
+        <div style=\"display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.88rem;\">
           <span>Semester Hostel Accommodation Fee:</span>
-          <strong>₹55,000</strong>
+          <strong>\u20b955,000</strong>
         </div>
-        <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.88rem;">
+        <div style=\"display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.88rem;\">
           <span>Semester Mess Advance Fee:</span>
-          <strong>₹25,000</strong>
+          <strong>\u20b925,000</strong>
         </div>
-        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 8px 0;">
-        <div style="display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: 700;">
+        <hr style=\"border: none; border-top: 1px solid var(--border-color); margin: 8px 0;\">
+        <div style=\"display: flex; justify-content: space-between; font-size: 1.05rem; font-weight: 700;\">
           <span>Total Payable:</span>
-          <span style="color: var(--primary);">₹80,000</span>
+          <span style=\"color: var(--primary);\">\u20b980,000</span>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Payment Method</label>
-        <select id="pay-method" class="form-select">
-          <option value="UPI / QR (Instant)">UPI / QR (Instant Confirmation)</option>
-          <option value="Net Banking (HDFC/SBI/ICICI)">Net Banking</option>
-          <option value="Debit/Credit Card">Debit / Credit Card</option>
+      <div class=\"form-group\">
+        <label class=\"form-label\">Payment Method</label>
+        <select id=\"pay-method\" class=\"form-select\">
+          <option value=\"UPI / QR (Instant)\">UPI / QR (Instant Confirmation)</option>
+          <option value=\"Net Banking (HDFC/SBI/ICICI)\">Net Banking</option>
+          <option value=\"Debit/Credit Card\">Debit / Credit Card</option>
         </select>
       </div>
     `;
 
     this.app.openModal('Hostel & Mess Fee Checkout', modalBody, [
       {
-        label: 'Complete Payment (₹80,000)',
+        label: 'Complete Payment (\u20b980,000)',
         class: 'btn-success',
         onClick: async () => {
           const method = document.getElementById('pay-method').value;

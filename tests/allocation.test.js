@@ -5,7 +5,7 @@ import { db } from '../server/data/db.js';
 import { getTestSeedData } from '../server/data/seedData.js';
 import { AllocationEngine } from '../server/services/allocationEngine.js';
 
-test('Room Allocation Engine - 8 Phase Workflow & Invariants', async (t) => {
+test('Room Allocation - 8 Phase Workflow & Invariants', async (t) => {
   db.data = getTestSeedData();
   db.save();
 
@@ -52,7 +52,7 @@ test('Room Allocation Engine - 8 Phase Workflow & Invariants', async (t) => {
     assert.strictEqual(cluster21.averageCgpa, 8.30);
     assert.strictEqual(cluster35.averageCgpa, 8.70);
 
-    // Run allocation engine
+    // Run allocation
     const result = AllocationEngine.runAllocationEngine();
     assert.strictEqual(result.success, true);
     assert.strictEqual(result.allocatedCount, 2);

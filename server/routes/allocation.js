@@ -5,6 +5,39 @@ import { AllocationEngine } from '../services/allocationEngine.js';
 
 const router = express.Router();
 
+function buildPendingMembers(members, leaderId) {
+  return members.map(member => ({
+    studentId: member.id,
+    rollNumber: member.rollNumber,
+    fullName: member.fullName,
+    status: member.id === leaderId ? 'APPROVED' : 'PENDING',
+    respondedAt: member.id === leaderId ? new Date().toISOString() : null
+  }));
+}
+
+function finalizeClusterIfApproved(cluster) {
+  const allApproved = cluster.pendingMembers?.every(m => m.status === 'APPROVED');
+  if (!allApproved) return false;
+
+  cluster.status = 'FORMED';
+  cluster.memberIds = cluster.pendingMembers.map(m => m.studentId);
+  cluster.memberRolls = cluster.pendingMembers.map(m => m.rollNumber);
+
+  const users = db.getCollection('users');
+  cluster.memberIds.forEach(memberId => {
+    const user = users.find(u => u.id === memberId);
+    if (user) {
+      user.clusterId = cluster.id;
+      user.allocationStatus = 'CLUSTER_FORMED';
+    }
+  });
+
+  const members = cluster.memberIds.map(id => users.find(u => u.id === id)).filter(Boolean);
+  cluster.averageCgpa = AllocationEngine.calculateClusterCgpa(members);
+  cluster.eligibleHostels = AllocationEngine.determineEligibleHostels(cluster.academicYear, cluster.gender, cluster.averageCgpa);
+  return true;
+}
+
 // 1. Get Allocation Status & Overview
 router.get('/status', (req, res) => {
   const activeSemester = db.getActiveSemester();
@@ -101,73 +134,52 @@ router.post('/preference', (req, res) => {
       return res.status(400).json({ error: 'Your roll number must be included in the 4 cluster members' });
     }
 
-    // Check none of the 4 students are already in an existing cluster
     const usersColl = db.getCollection('users');
-    for (const r of normalizedRolls) {
-      const existing = usersColl.find(u => u.rollNumber && u.rollNumber.toUpperCase() === r);
-      if (existing && existing.clusterId) {
-        return res.status(400).json({ error: `Student with roll number ${r} is already assigned to another cluster.` });
-      }
-    }
-
-    // Resolve or auto-register member accounts
     const members = [];
     for (const r of normalizedRolls) {
-      let member = usersColl.find(u => u.rollNumber && u.rollNumber.toUpperCase() === r);
+      const member = usersColl.find(u => u.role === 'student' && u.rollNumber && u.rollNumber.toUpperCase() === r);
       if (!member) {
-        // Auto-provision placeholder student profile so cluster is fully formed
-        member = db.insert('users', {
-          role: 'student',
-          fullName: `Student (${r})`,
-          rollNumber: r,
-          email: `${r.toLowerCase()}@thapar.edu`,
-          academicYear: student.academicYear || 3,
-          admissionYear: 2026 - (student.academicYear || 3),
-          course: student.course || 'B.Tech',
-          gender: student.gender || 'Male',
-          cgpa: 8.00,
-          cgpaVerified: true,
-          currentHostel: student.currentHostel || 'Hostel M',
-          currentRoom: 'TBD',
-          currentRoommates: [],
-          verified: true,
-          clusterId: null,
-          allocationStatus: 'PRE_ALLOCATION'
-        });
+        return res.status(404).json({ error: `Student with roll number ${r} is not registered yet. Ask them to register before inviting them to a cluster.` });
+      }
+      if (member.clusterId) {
+        return res.status(400).json({ error: `Student with roll number ${r} is already assigned to another cluster.` });
+      }
+      const pendingElsewhere = db.findOne('clusters', c =>
+        c.status === 'PENDING_APPROVAL' &&
+        c.pendingMembers?.some(pm => pm.rollNumber === r && pm.status === 'PENDING')
+      );
+      if (pendingElsewhere) {
+        return res.status(400).json({ error: `Student with roll number ${r} already has a pending cluster invitation.` });
       }
       members.push(member);
     }
 
-    // Calculate cluster average CGPA and determine eligible hostels
-    const avgCgpa = AllocationEngine.calculateClusterCgpa(members);
-    const eligibleHostels = AllocationEngine.determineEligibleHostels(student.academicYear, student.gender, avgCgpa);
-
     const clustersColl = db.getCollection('clusters');
     const nextClusterNumber = Math.max(0, ...clustersColl.map(c => c.clusterNumber || 0)) + 1;
     const clusterId = `cluster-${nextClusterNumber}`;
+    const pendingMembers = buildPendingMembers(members, student.id);
 
     createdCluster = {
       id: clusterId,
       clusterNumber: nextClusterNumber,
       leaderId: student.id,
-      memberIds: members.map(m => m.id),
-      memberRolls: normalizedRolls,
+      memberIds: [student.id],
+      memberRolls: [student.rollNumber],
+      pendingMembers,
       gender: student.gender,
       academicYear: student.academicYear,
-      averageCgpa: avgCgpa,
-      eligibleHostels: eligibleHostels,
+      averageCgpa: 0,
+      eligibleHostels: [],
       preferences: [],
-      status: 'FORMED',
+      status: 'PENDING_APPROVAL',
       assignedRoomPairId: null,
       paymentStatus: 'PENDING'
     };
 
     clustersColl.push(createdCluster);
-
-    // Assign clusterId and allocationStatus to all 4 members
-    members.forEach(m => {
-      m.clusterId = clusterId;
-      m.allocationStatus = 'CLUSTER_FORMED';
+    members.forEach(member => {
+      member.clusterId = clusterId;
+      member.allocationStatus = member.id === student.id ? 'AWAITING_CLUSTER_APPROVALS' : 'CLUSTER_INVITED';
     });
   }
 
@@ -183,7 +195,7 @@ router.post('/preference', (req, res) => {
     partnerRollNumber: partnerRollNumber ? partnerRollNumber.trim().toUpperCase() : null,
     clusterRollNumbers: clusterRollNumbers ? clusterRollNumbers.map(r => String(r).trim().toUpperCase()) : null,
     preferredHostels: preferredHostels || [],
-    status: createdCluster ? 'CLUSTERED' : 'PENDING_FORMATION',
+    status: createdCluster ? 'PENDING_APPROVALS' : 'PENDING_FORMATION',
     clusterId: createdCluster ? createdCluster.id : null,
     submittedAt: new Date().toISOString()
   };
@@ -199,11 +211,104 @@ router.post('/preference', (req, res) => {
     success: true, 
     preference: prefEntry, 
     cluster: createdCluster,
-    message: createdCluster ? 'Cluster formed successfully! Your group of 4 is locked into Cluster #' + createdCluster.clusterNumber : 'Preference saved successfully! Waiting for Caretaker cluster formation.' 
+    message: createdCluster ? 'Cluster invitation sent. Room selection unlocks after all invited students approve Cluster #' + createdCluster.clusterNumber : 'Preference saved successfully! Waiting for Caretaker cluster formation.' 
   });
 });
 
-// 3. Caretaker / Admin Trigger: Form Clusters (Phase 2)
+// 3. Student: pending cluster invitations and responses
+router.get('/cluster-invitations/:studentId', (req, res) => {
+  const studentId = req.params.studentId;
+  const clusters = db.getCollection('clusters');
+  const invitations = clusters.filter(c =>
+    c.status === 'PENDING_APPROVAL' &&
+    c.pendingMembers?.some(pm => pm.studentId === studentId && pm.status === 'PENDING')
+  );
+  res.json({ invitations });
+});
+
+router.post('/cluster-invitations/respond', (req, res) => {
+  const { clusterId, studentId, decision } = req.body;
+  if (!clusterId || !studentId || !['APPROVED', 'DENIED'].includes(decision)) {
+    return res.status(400).json({ error: 'clusterId, studentId, and decision APPROVED/DENIED are required' });
+  }
+
+  const cluster = db.findById('clusters', clusterId);
+  if (!cluster || cluster.status !== 'PENDING_APPROVAL') {
+    return res.status(404).json({ error: 'Pending cluster invitation not found' });
+  }
+
+  const member = cluster.pendingMembers?.find(pm => pm.studentId === studentId);
+  if (!member) return res.status(404).json({ error: 'You are not invited to this cluster' });
+  if (member.status !== 'PENDING') return res.status(400).json({ error: 'You have already responded to this invitation' });
+
+  member.status = decision;
+  member.respondedAt = new Date().toISOString();
+
+  if (decision === 'DENIED') {
+    const deniedUser = db.findById('users', studentId);
+    if (deniedUser) {
+      deniedUser.clusterId = null;
+      deniedUser.allocationStatus = 'PRE_ALLOCATION';
+    }
+    cluster.status = 'NEEDS_REPLACEMENT';
+  } else {
+    finalizeClusterIfApproved(cluster);
+  }
+
+  db.save();
+  res.json({ success: true, cluster, message: decision === 'APPROVED' ? 'Cluster invitation approved.' : 'Cluster invitation denied. The leader can invite a replacement.' });
+});
+
+router.post('/cluster-invitations/replace-member', (req, res) => {
+  const { clusterId, leaderId, oldRollNumber, newRollNumber } = req.body;
+  if (!clusterId || !leaderId || !oldRollNumber || !newRollNumber) {
+    return res.status(400).json({ error: 'clusterId, leaderId, oldRollNumber, and newRollNumber are required' });
+  }
+
+  const cluster = db.findById('clusters', clusterId);
+  if (!cluster || !['PENDING_APPROVAL', 'NEEDS_REPLACEMENT'].includes(cluster.status)) {
+    return res.status(404).json({ error: 'Editable pending cluster not found' });
+  }
+  if (cluster.leaderId !== leaderId) {
+    return res.status(403).json({ error: 'Only the cluster leader can replace invited students.' });
+  }
+
+  const oldRoll = String(oldRollNumber).trim().toUpperCase();
+  const newRoll = String(newRollNumber).trim().toUpperCase();
+  if (cluster.pendingMembers.some(pm => pm.rollNumber === newRoll)) {
+    return res.status(400).json({ error: 'New roll number is already in this cluster invitation.' });
+  }
+
+  const users = db.getCollection('users');
+  const newStudent = users.find(u => u.role === 'student' && u.rollNumber?.toUpperCase() === newRoll);
+  if (!newStudent) return res.status(404).json({ error: `Student ${newRoll} is not registered yet.` });
+  if (newStudent.clusterId) return res.status(400).json({ error: `Student ${newRoll} is already assigned to another cluster.` });
+
+  const replaceIndex = cluster.pendingMembers.findIndex(pm => pm.rollNumber === oldRoll && pm.studentId !== leaderId);
+  if (replaceIndex === -1) return res.status(404).json({ error: 'Replaceable invited member not found.' });
+
+  const oldStudent = users.find(u => u.rollNumber?.toUpperCase() === oldRoll);
+  if (oldStudent) {
+    oldStudent.clusterId = null;
+    oldStudent.allocationStatus = 'PRE_ALLOCATION';
+  }
+
+  cluster.pendingMembers[replaceIndex] = {
+    studentId: newStudent.id,
+    rollNumber: newStudent.rollNumber,
+    fullName: newStudent.fullName,
+    status: 'PENDING',
+    respondedAt: null
+  };
+  newStudent.clusterId = cluster.id;
+  newStudent.allocationStatus = 'CLUSTER_INVITED';
+  cluster.status = 'PENDING_APPROVAL';
+  db.save();
+
+  res.json({ success: true, cluster, message: `Replacement invitation sent to ${newStudent.fullName}.` });
+});
+
+// 4. Caretaker / Admin Trigger: Form Clusters (Phase 2)
 router.post('/form-clusters', (req, res) => {
   try {
     const result = AllocationEngine.formClusters();
@@ -235,7 +340,7 @@ router.post('/change-leader', (req, res) => {
   }
 });
 
-// 6. Caretaker / Admin Trigger: Run Allocation Engine (Phase 5 & 6)
+// 6. Caretaker / Admin Trigger: Run Allocation (Phase 5 & 6)
 router.post('/run-engine', (req, res) => {
   try {
     const result = AllocationEngine.runAllocationEngine();
@@ -273,7 +378,10 @@ router.get('/cluster/:id', (req, res) => {
   if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
 
   const users = db.getCollection('users');
-  const members = cluster.memberIds.map(mId => users.find(u => u.id === mId)).filter(Boolean);
+  const memberIds = cluster.status === 'PENDING_APPROVAL' || cluster.status === 'NEEDS_REPLACEMENT'
+    ? (cluster.pendingMembers || []).map(m => m.studentId)
+    : cluster.memberIds;
+  const members = memberIds.map(mId => users.find(u => u.id === mId)).filter(Boolean);
   const leader = users.find(u => u.id === cluster.leaderId);
 
   res.json({
@@ -367,8 +475,12 @@ router.post('/dissolve-cluster', (req, res) => {
   }
 
   const users = db.getCollection('users');
-  // Unbind all 4 members
-  cluster.memberIds.forEach(mId => {
+  // Unbind all finalized or pending members
+  const idsToRelease = new Set([
+    ...(cluster.memberIds || []),
+    ...(cluster.pendingMembers || []).map(m => m.studentId)
+  ]);
+  idsToRelease.forEach(mId => {
     const u = users.find(user => user.id === mId);
     if (u) {
       u.clusterId = null;

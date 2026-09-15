@@ -195,7 +195,7 @@ export class AdminPortal {
     return `
       <div class="card" style="max-width: 800px; margin: 0 auto;">
         <div class="card-header">
-          <h3 class="card-title"><i class="fa-solid fa-sliders"></i> University Allocation Engine Configuration</h3>
+          <h3 class="card-title"><i class="fa-solid fa-sliders"></i> Hostel Allocation Configuration</h3>
           <span class="status-pill info">Section 48</span>
         </div>
 

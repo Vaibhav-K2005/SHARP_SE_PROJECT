@@ -1,7 +1,9 @@
 // server/data/db.js
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { MongoClient } from 'mongodb';
 import { getInitialData } from './seedData.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,26 +13,58 @@ const DB_PATH = path.join(__dirname, 'db.json');
 class Database {
   constructor() {
     this.data = null;
-    this.init();
+    this.mongoClient = null;
+    this.mongoCollection = null;
+    this.mongoStateId = process.env.MONGODB_STATE_ID || 'sharp-demo-state';
+    this.ready = this.init();
   }
 
-  init() {
-    if (!fs.existsSync(DB_PATH)) {
-      this.data = getInitialData();
-      this.save();
-    } else {
+  async init() {
+    const fileData = this.loadFromFile();
+    this.data = fileData || getInitialData();
+
+    const mongoUri = process.env.MONGODB_URI;
+    if (mongoUri) {
       try {
-        const raw = fs.readFileSync(DB_PATH, 'utf-8');
-        this.data = JSON.parse(raw);
+        this.mongoClient = new MongoClient(mongoUri);
+        await this.mongoClient.connect();
+        const dbName = process.env.MONGODB_DB || 'sharp_hostel_portal';
+        const collectionName = process.env.MONGODB_COLLECTION || 'app_state';
+        this.mongoCollection = this.mongoClient.db(dbName).collection(collectionName);
+
+        const storedState = await this.mongoCollection.findOne({ _id: this.mongoStateId });
+        if (storedState?.data) {
+          this.data = storedState.data;
+          this.saveToFile();
+          console.log(`MongoDB persistence enabled: loaded state "${this.mongoStateId}" from ${dbName}.${collectionName}`);
+        } else {
+          await this.saveToMongo();
+          console.log(`MongoDB persistence enabled: seeded state "${this.mongoStateId}" in ${dbName}.${collectionName}`);
+        }
       } catch (err) {
-        console.error('Error reading db.json, falling back to seed data:', err);
-        this.data = getInitialData();
-        this.save();
+        console.error('MongoDB connection failed. Falling back to db.json persistence:', err.message);
+        this.mongoClient = null;
+        this.mongoCollection = null;
       }
+    }
+
+    if (!fileData && !this.mongoCollection) {
+      this.saveToFile();
     }
   }
 
-  save() {
+  loadFromFile() {
+    if (!fs.existsSync(DB_PATH)) return null;
+    try {
+      const raw = fs.readFileSync(DB_PATH, 'utf-8');
+      return JSON.parse(raw);
+    } catch (err) {
+      console.error('Error reading db.json, falling back to seed data:', err);
+      return null;
+    }
+  }
+
+  saveToFile() {
     try {
       const tempPath = `${DB_PATH}.tmp`;
       fs.writeFileSync(tempPath, JSON.stringify(this.data, null, 2), 'utf-8');
@@ -41,6 +75,26 @@ class Database {
       } catch (fallbackErr) {
         console.error('Failed to write DB:', fallbackErr);
       }
+    }
+  }
+
+  async saveToMongo() {
+    if (!this.mongoCollection) return;
+    try {
+      await this.mongoCollection.replaceOne(
+        { _id: this.mongoStateId },
+        { _id: this.mongoStateId, data: this.data, updatedAt: new Date() },
+        { upsert: true }
+      );
+    } catch (err) {
+      console.error('Failed to persist state to MongoDB:', err.message);
+    }
+  }
+
+  save() {
+    this.saveToFile();
+    if (this.mongoCollection) {
+      this.saveToMongo();
     }
   }
 

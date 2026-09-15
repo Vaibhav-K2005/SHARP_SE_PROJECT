@@ -38,7 +38,7 @@ export class CaretakerPortal {
 
     const navItems = [
       { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard' },
-      { id: 'allocation-center', icon: 'fa-arrows-split-up-and-left', label: 'Room Allocation Engine' },
+      { id: 'allocation-center', icon: 'fa-arrows-split-up-and-left', label: 'Room Allocation' },
       { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' }
     ];
 
@@ -119,13 +119,13 @@ export class CaretakerPortal {
         <div class="card-header">
           <div>
             <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Daily Actions</h3>
-            <p class="card-subtitle">Use the room allocation engine and floor-map tools for this demo. Complaints and entry approvals are hidden.</p>
+            <p class="card-subtitle">Use the room allocation and floor-map tools for this demo. Complaints and entry approvals are hidden.</p>
           </div>
         </div>
         <div class="demo-action-grid two-up">
           <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-allocation">
             <i class="fa-solid fa-arrows-split-up-and-left" style="color: var(--primary);"></i>
-            <span>Open Allocation Engine</span>
+            <span>Open Room Allocation</span>
           </button>
           <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-map">
             <i class="fa-solid fa-hotel" style="color: var(--info);"></i>
@@ -165,7 +165,7 @@ export class CaretakerPortal {
                 <i class="fa-solid fa-users"></i> Form Clusters
               </button>
               <button class="btn btn-info btn-sm" id="btn-ct-run-engine-2">
-                <i class="fa-solid fa-gears"></i> Run Conflict Engine
+                <i class="fa-solid fa-gears"></i> Run Conflict Resolution
               </button>
             `}
             <button class="btn btn-secondary btn-sm btn-ct-reset-allotment" title="Reset allotment state to Not Started">
@@ -372,7 +372,7 @@ export class CaretakerPortal {
       const complaints = data.complaints || [];
 
       if (complaints.length === 0) {
-        mount.innerHTML = `<div class="empty-state">No complaints registered for ${hostelName}.</div>`;
+        mount.innerHTML = `<div class=\"empty-state\">No complaints registered for ${hostelName}.</div>`;
         return;
       }
 
@@ -733,7 +733,7 @@ export class CaretakerPortal {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        this.app.toast(`Conflict engine ran: ${data.allocatedCount} allocated, ${data.unallocatedCount} unallocated.`, 'success');
+        this.app.toast(`Conflict resolution ran: ${data.allocatedCount} allocated, ${data.unallocatedCount} unallocated.`, 'success');
         await this.fetchData();
         this.render();
         this.attachEvents();

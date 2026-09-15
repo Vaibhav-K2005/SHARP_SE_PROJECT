@@ -249,29 +249,11 @@ button {
   outline: none;
 }
 
-/* Demo Simulator Bar at the very top */
-.demo-bar {
-  background: rgba(246, 241, 232, 0.95);
-  border-bottom: 1px solid var(--border-color);
-  padding: 6px 20px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-}
-
-body.theme-dark .demo-bar {
-  background: rgba(15, 23, 42, 0.95);
-}
-
-.demo-bar-inner {
-  max-width: 1440px;
-  margin: 0 auto;
+/* Header debug controls */
+.debug-header-tools {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .demo-badge {
@@ -297,28 +279,104 @@ body.theme-dark .demo-badge {
 .demo-role-pills {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.demo-debug-dropdown {
+  position: relative;
+}
+
+.demo-debug-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  padding: 5px 9px;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+}
+
+.demo-debug-trigger:hover,
+.demo-debug-dropdown.show .demo-debug-trigger {
+  color: var(--text-primary);
+  border-color: var(--border-glow);
+  background: var(--bg-card-hover);
+}
+
+.demo-debug-trigger span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.demo-debug-trigger strong {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.demo-debug-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 260px;
+  max-height: 360px;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  z-index: 1600;
+}
+
+.demo-debug-dropdown.show .demo-debug-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .demo-role-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-secondary);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  padding: 4px 12px;
-  border-radius: var(--radius-full);
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
   transition: all var(--transition-fast);
+}
+
+.demo-role-btn span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.demo-role-btn small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 .demo-role-btn:hover {
   background: var(--bg-card-hover);
   color: var(--text-primary);
-  border-color: var(--border-glow);
+  border-color: var(--border-color);
 }
 
 .demo-role-btn.active {
@@ -328,6 +386,10 @@ body.theme-dark .demo-badge {
   box-shadow: 0 0 12px var(--primary-glow);
 }
 
+.demo-role-btn.active small {
+  color: rgba(255, 255, 255, 0.85);
+}
+
 .demo-actions {
   display: flex;
   align-items: center;
@@ -335,17 +397,24 @@ body.theme-dark .demo-badge {
 }
 
 .btn-demo-action {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--text-secondary);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
+  padding: 5px 8px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   gap: 6px;
   transition: all var(--transition-fast);
+}
+
+.btn-reset-compact {
+  width: 30px;
+  height: 30px;
+  justify-content: center;
+  padding: 0;
 }
 
 .btn-demo-action:hover {
@@ -354,17 +423,6 @@ body.theme-dark .demo-badge {
   border-color: var(--border-glow);
 }
 
-.btn-top-register {
-  background: rgba(184, 86, 20, 0.12);
-  color: var(--primary);
-  border-color: var(--primary);
-}
-
-body.theme-dark .btn-top-register {
-  background: rgba(99, 102, 241, 0.25);
-  color: #c7d2fe;
-  border-color: var(--primary);
-}
 
 /* Universal Header */
 .app-header {
@@ -372,8 +430,7 @@ body.theme-dark .btn-top-register {
   border-bottom: 1px solid var(--border-color);
   backdrop-filter: blur(14px);
   position: sticky;
-  top: 39px;
-  /* Below demo bar */
+  top: 0;
   z-index: 990;
   padding: 12px 24px;
 }
