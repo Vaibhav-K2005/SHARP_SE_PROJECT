@@ -12,6 +12,7 @@ class SharpApp {
     this.demoUsers = null;
     this.currentPortalInstance = null;
     this.notifications = [];
+    this.notificationTimer = null;
   }
 
   async init() {
@@ -406,6 +407,7 @@ class SharpApp {
 
   switchUser(user) {
     if (!user) return;
+    if (this.notificationTimer) clearInterval(this.notificationTimer);
     this.currentUser = user;
     localStorage.setItem('sharp-currentUser', JSON.stringify(user));
 
@@ -434,6 +436,7 @@ class SharpApp {
     // Mount respective portal
     this.routePortal(user);
     this.loadNotifications();
+    this.notificationTimer = setInterval(() => this.loadNotifications(), 10000);
     this.renderDemoRolePills();
   }
 
@@ -454,7 +457,10 @@ class SharpApp {
   }
 
   logout() {
+    if (this.notificationTimer) clearInterval(this.notificationTimer);
+    this.notificationTimer = null;
     this.currentUser = null;
+    this.notifications = [];
     localStorage.removeItem('sharp-currentUser');
     this.toast('You have logged out of your resident portal', 'info');
     this.renderHomePage();
@@ -464,8 +470,11 @@ class SharpApp {
   async loadNotifications() {
     if (!this.currentUser) return;
     try {
-      const res = await fetch(`/api/notifications/${this.currentUser.id}`);
-      this.notifications = await res.json();
+      const { role, id } = this.currentUser;
+      const res = await fetch(`/api/notifications/${encodeURIComponent(role)}/${encodeURIComponent(id)}`);
+      if (!res.ok) throw new Error(`Notification request failed (${res.status})`);
+      const data = await res.json();
+      this.notifications = Array.isArray(data) ? data : (data.notifications || []);
       const badge = document.getElementById('notif-badge');
       const list = document.getElementById('notif-list');
 
@@ -529,19 +538,30 @@ class SharpApp {
     if (btnNotif && notifDropdown) {
       btnNotif.addEventListener('click', (e) => {
         e.stopPropagation();
-        notifDropdown.classList.toggle('show');
+        const isOpen = notifDropdown.classList.toggle('show');
         document.getElementById('profile-dropdown')?.classList.remove('show');
+        if (isOpen) this.loadNotifications();
       });
     }
 
     // Mark All Read
     const btnMarkRead = document.getElementById('btn-mark-all-read');
     if (btnMarkRead) {
-      btnMarkRead.addEventListener('click', () => {
-        this.notifications.forEach(n => n.read = true);
-        const badge = document.getElementById('notif-badge');
-        if (badge) badge.style.display = 'none';
-        this.loadNotifications();
+      btnMarkRead.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        if (!this.currentUser) return;
+        try {
+          const res = await fetch('/api/notifications/read-all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: this.currentUser.role, userId: this.currentUser.id })
+          });
+          if (!res.ok) throw new Error(`Could not mark notifications read (${res.status})`);
+          await this.loadNotifications();
+        } catch (err) {
+          console.error('Failed to mark notifications read:', err);
+          this.toast('Could not mark notifications as read. Please try again.', 'danger');
+        }
       });
     }
 

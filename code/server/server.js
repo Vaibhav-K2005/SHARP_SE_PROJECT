@@ -36,16 +36,31 @@ app.use('/api/admin', adminRoutes);
 // Notifications Endpoint
 app.get('/api/notifications/:role/:userId', (req, res) => {
   const { role, userId } = req.params;
-  const notifications = db.find('notifications', n => 
-    (n.recipientRole === role && (!n.recipientId || n.recipientId === userId))
-  );
+  const notifications = db.find('notifications', notification =>
+    notification.recipientRole === role &&
+    (!notification.recipientId || notification.recipientId === userId)
+  ).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
   res.json({ notifications });
 });
 
-app.post('/api/notifications/read', (req, res) => {
-  const { notificationId } = req.body;
-  const updated = db.update('notifications', notificationId, { read: true });
-  res.json({ success: true, updated });
+app.post('/api/notifications/read-all', (req, res) => {
+  const { role, userId } = req.body;
+  if (!role || !userId) {
+    return res.status(400).json({ error: 'role and userId are required' });
+  }
+
+  let changed = false;
+  db.find('notifications', notification =>
+    notification.recipientRole === role && notification.recipientId === userId
+  ).forEach(notification => {
+    if (!notification.read) {
+      notification.read = true;
+      changed = true;
+    }
+  });
+
+  if (changed) db.save();
+  res.json({ success: true });
 });
 
 // Root / SPA Fallback

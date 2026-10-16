@@ -2,6 +2,7 @@
 import express from 'express';
 import { db } from '../data/db.js';
 import { AllocationEngine } from '../services/allocationEngine.js';
+import { notifyStudents } from '../utils/notifications.js';
 
 const router = express.Router();
 
@@ -312,6 +313,9 @@ router.post('/cluster-invitations/replace-member', (req, res) => {
 router.post('/form-clusters', (req, res) => {
   try {
     const result = AllocationEngine.formClusters();
+    if ((result.formedClustersCount || 0) > 0) {
+      notifyStudents(`${result.formedClustersCount} cluster(s) have been formed. Check your student dashboard for your cluster status.`);
+    }
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -344,6 +348,10 @@ router.post('/change-leader', (req, res) => {
 router.post('/run-engine', (req, res) => {
   try {
     const result = AllocationEngine.runAllocationEngine();
+    const changedCount = (result.allocatedCount || 0) + (result.unallocatedCount || 0);
+    if (changedCount > 0) {
+      notifyStudents(`Allotment has advanced to Phase 6. ${result.allocatedCount || 0} cluster(s) were allocated and ${result.unallocatedCount || 0} require review. Check your student dashboard for your status.`);
+    }
     res.json(result);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -355,6 +363,7 @@ router.post('/manual-assign', (req, res) => {
   const { clusterId, roomPairId } = req.body;
   try {
     const result = AllocationEngine.manualAssignRoomPair(clusterId, roomPairId);
+    notifyStudents(`Your cluster has been assigned room pair ${result.roomPair.pairNumber} in ${result.roomPair.hostelName}. Check your student dashboard for details.`, 'Room allocation updated', result.cluster.memberIds);
     res.json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -415,10 +424,15 @@ router.get('/hostel-map/:hostelName', (req, res) => {
 router.post('/set-phase', (req, res) => {
   const { phase } = req.body;
   const phaseNum = Number(phase);
-  if (isNaN(phaseNum) || phaseNum < 1 || phaseNum > 8) {
+  if (!Number.isInteger(phaseNum) || phaseNum < 1 || phaseNum > 8) {
     return res.status(400).json({ error: 'Phase must be an integer from 1 to 8' });
   }
+  const previous = db.getActiveSemester();
+  const changed = previous?.activePhase !== phaseNum;
   const updated = db.updateActiveSemesterPhase(phaseNum);
+  if (changed) {
+    notifyStudents(`Room allotment moved to Phase ${phaseNum}.`);
+  }
   res.json({ success: true, activeSemester: updated, currentPhase: phaseNum });
 });
 
@@ -426,31 +440,45 @@ router.post('/set-phase', (req, res) => {
 router.post('/start-phase', (req, res) => {
   const { phase } = req.body;
   const targetPhase = phase ? Number(phase) : 1;
+  if (!Number.isInteger(targetPhase) || targetPhase < 1 || targetPhase > 8) {
+    return res.status(400).json({ error: 'Phase must be an integer from 1 to 8' });
+  }
+  const previous = db.getActiveSemester();
+  const changed = previous?.allotmentStatus !== 'ACTIVE' || previous?.activePhase !== targetPhase;
   const updated = db.startAllotmentPhase(targetPhase);
-  res.json({ 
-    success: true, 
+  const message = `Room allotment has started for Phase ${targetPhase}. Students can now continue with the allotment process.`;
+  if (changed) notifyStudents(message, 'Allotment started');
+  res.json({
+    success: true,
     message: `Room allotment phase started successfully (Phase ${targetPhase}).`,
-    semester: updated 
+    semester: updated
   });
 });
 
 // 13. Caretaker / Admin: End Allotment Phase
 router.post('/end-phase', (req, res) => {
+  const previous = db.getActiveSemester();
+  const changed = previous?.allotmentStatus !== 'ENDED';
   const updated = db.endAllotmentPhase();
-  res.json({ 
-    success: true, 
+  const message = `Room allotment has ended${updated?.activePhase ? ` at Phase ${updated.activePhase}` : ''}.`;
+  if (changed) notifyStudents(message, 'Allotment ended');
+  res.json({
+    success: true,
     message: 'Room allotment phase has been officially ended/closed.',
-    semester: updated 
+    semester: updated
   });
 });
 
 // 14. Caretaker / Admin: Reset Allotment Phase
 router.post('/reset-phase', (req, res) => {
+  const previous = db.getActiveSemester();
+  const changed = previous?.allotmentStatus !== 'NOT_STARTED' || previous?.activePhase !== 1;
   const updated = db.resetAllotmentPhase();
-  res.json({ 
-    success: true, 
+  if (changed) notifyStudents('Room allotment has been reset and is not currently open.');
+  res.json({
+    success: true,
     message: 'Room allotment phase reset to Not Started.',
-    semester: updated 
+    semester: updated
   });
 });
 

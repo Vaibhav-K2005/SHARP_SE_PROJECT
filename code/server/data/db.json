@@ -7,9 +7,9 @@
       "allotmentStatus": "ACTIVE",
       "currentPhase": "Phase 1: Pre-Allocation",
       "phaseNumber": 1,
-      "activePhase": 5,
-      "allocationStartDate": "2026-09-01",
-      "allocationEndDate": "2026-09-30",
+      "activePhase": 1,
+      "allocationStartDate": "2026-10-16T07:49:16.632Z",
+      "allocationEndDate": "2026-10-16T07:49:10.184Z",
       "academicYear": 2026
     }
   ],

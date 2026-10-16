@@ -9,16 +9,20 @@
 \usepackage{array}
 \usepackage{float}
 \usepackage{capt-of}
+\usepackage{amsmath}
+\usepackage{placeins}
+\usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{titlesec}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,fit}
 \usepackage[hidelinks]{hyperref}
 \usepackage{fancyhdr}
 \usepackage{lastpage}
 
 % ---------- General layout ----------
 \setlength{\parindent}{0pt}
+\numberwithin{figure}{section}   % figure numbers follow the format: 1.1, 2.1, 2.2, ...
 \setlength{\parskip}{5pt}
 \setlength{\headheight}{14pt}
 \setlist{nosep,leftmargin=*}
@@ -43,20 +47,62 @@
   decision/.style={draw,diamond,aspect=2.4,align=center,inner sep=1pt,font=\small},
   ent/.style={draw,ellipse,align=center,minimum width=28mm,minimum height=11mm,inner sep=2pt,font=\footnotesize\bfseries},
   lbl/.style={midway,fill=white,inner sep=1.5pt,font=\scriptsize,align=center},
-  utype/.style={draw,rounded corners,align=center,minimum width=24mm,minimum height=8mm,font=\small\bfseries},
-  thead/.style={draw,fill=black,text=white,text width=44mm,align=center,font=\scriptsize\bfseries,minimum height=5mm,outer sep=0pt},
-  tbody/.style={draw,fill=gray!15,text width=44mm,align=left,font=\scriptsize,outer sep=0pt}
+  utype/.style={draw,rounded corners,align=center,minimum width=24mm,minimum height=8mm,font=\small\bfseries}
 }
 
-% Data-model table: \entity{name}{x}{y}{title}{fields}
-\newcommand{\entity}[5]{%
-  \node[thead,anchor=north] (#1h) at (#2,#3) {#4};
-  \node[tbody,below=0pt of #1h] (#1) {#5};}
+% ---------- Data-flow-diagram styles ----------
+\tikzset{
+  ext/.style={draw,fill=white,align=center,minimum width=26mm,minimum height=10mm,font=\scriptsize\bfseries},
+  proc/.style={draw,rounded corners=5pt,fill=gray!10,align=center,text width=32mm,minimum height=18mm,font=\scriptsize\bfseries},
+  dl/.style={fill=white,inner sep=1pt,font=\scriptsize,align=center,text width=40mm},
+  store/.style={draw=none,text width=44mm,align=left,inner sep=3pt,minimum height=8mm,font=\scriptsize}
+}
+% Open-ended data store: \dstore{name}{x}{y}{text}
+\newcommand{\dstore}[4]{%
+  \node[store] (#1) at (#2,#3) {#4};
+  \draw (#1.north west) -- (#1.north east);
+  \draw (#1.south west) -- (#1.south east);
+  \draw (#1.north west) -- (#1.south west);}
+% Two-way flow (double-headed arrow): \bflow{from}{to}{label}
+\newcommand{\bflow}[3]{\draw[{Latex}-{Latex},thick] (#1) -- node[dl]{#3} (#2);}
+\newcommand{\oflow}[3]{\draw[flow] (#1) -- node[dl]{#3} (#2);}
 
-% Role cards for activity figures
-\newcommand{\cardhead}[1]{\colorbox{black}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\centering\color{white}\sffamily\bfseries\footnotesize #1}}\par\nointerlineskip}
-\newcommand{\carda}[1]{\colorbox{gray!28}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\centering\footnotesize #1}}\par\nointerlineskip}
-\newcommand{\cardb}[1]{\colorbox{gray!12}{\parbox{\dimexpr\linewidth-2\fboxsep\relax}{\centering\footnotesize #1}}\par\nointerlineskip}
+% ---------- Activity-card styles (as in the format's activity figures) ----------
+\tikzset{
+  chead/.style={draw,fill=black,text=white,text width=40mm,align=center,font=\scriptsize\bfseries,minimum height=6mm,outer sep=0pt},
+  citem/.style={draw,text width=40mm,align=center,font=\scriptsize,minimum height=6mm,outer sep=0pt},
+  pstep/.style={draw,rounded corners=3pt,fill=white,align=center,text width=17mm,minimum height=11mm,font=\scriptsize,inner sep=2pt}
+}
+% Role card: \card{id}{x}{y}{title}{{item1},{item2},...}  (alternating shading)
+\newcommand{\card}[5]{%
+  \node[chead,anchor=north] (#1h) at (#2,#3) {#4};
+  \foreach \itm [count=\i] in {#5} {%
+    \pgfmathtruncatemacro{\pv}{\i-1}%
+    \ifnum\i=1
+      \node[citem,below=0pt of #1h,fill=gray!28] (#1\i) {\itm};%
+    \else
+      \ifodd\i
+        \node[citem,below=0pt of #1\pv,fill=gray!28] (#1\i) {\itm};%
+      \else
+        \node[citem,below=0pt of #1\pv,fill=gray!12] (#1\i) {\itm};%
+      \fi
+    \fi}}
+% Process box with arrow: \procbox{id}{x}{y}{title}{step1}{step2}{step3}  (box is 78mm x 34mm, top-left at x,y)
+\newcommand{\procbox}[7]{%
+  \draw (#2,#3) rectangle ++(7.8,-3.4);
+  \fill[gray!30] ($(#2,#3)+(0.3,-0.55)$) -- ++(6.5,0) -- ++(0,0.3) -- ++(0.75,-1.05) -- ++(-0.75,-1.05) -- ++(0,0.3) -- ++(-6.5,0) -- cycle;
+  \node[pstep] at ($(#2,#3)+(1.4,-1.3)$) {#5};
+  \node[pstep] at ($(#2,#3)+(3.6,-1.3)$) {#6};
+  \node[pstep] at ($(#2,#3)+(5.8,-1.3)$) {#7};
+  \node[font=\bfseries\small] at ($(#2,#3)+(3.9,-2.85)$) {#4};
+  \coordinate (#1) at ($(#2,#3)+(3.9,-1.7)$);
+  \coordinate (#1e) at ($(#2,#3)+(7.8,-1.7)$);
+  \coordinate (#1n) at ($(#2,#3)+(3.9,0)$);
+  \coordinate (#1s) at ($(#2,#3)+(3.9,-3.4)$);}
+% Frame with a bold title underneath: \roleframe{nodes to enclose}{title}
+\newcommand{\roleframe}[2]{%
+  \node[draw,fit=#1,inner sep=8pt] (frm) {};
+  \node[below=3pt of frm,font=\bfseries\small\sffamily] {#2};}
 
 \begin{document}
 
@@ -122,21 +168,21 @@ SHARP aims to digitize common hostel workflows that are otherwise managed throug
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=0.92,ent/.append style={minimum width=25mm}]
+\begin{tikzpicture}[scale=0.8,transform shape,ent/.append style={minimum width=25mm}]
 \node[ent] (stu) at (0,0) {Student};
-\node[ent,fill=gray!25] (room) at (-6.6,-3) {Room\\Allocation};
-\node[ent] (leave) at (-3.3,-3) {Leave / Pass\\Requests};
-\node[ent] (comp) at (0,-3) {Maintenance\\Complaints};
-\node[ent] (mess) at (3.3,-3) {Mess\\Feedback};
-\node[ent] (laun) at (6.6,-3) {Laundry\\Issues};
-\node[ent] (par) at (-5.4,-6) {Parent};
-\node[ent] (ward) at (-1.8,-6) {Warden /\\Administrator};
-\node[ent] (care) at (1.8,-6) {Caretaker};
-\node[ent] (mst) at (4.9,-6) {Mess\\Staff};
-\node[ent] (lst) at (8.0,-6) {Laundry\\Staff};
+\node[ent,fill=gray!25] (room) at (-6.6,-3.9) {Room\\Allocation};
+\node[ent] (leave) at (-3.3,-3.9) {Leave / Pass\\Requests};
+\node[ent] (comp) at (0,-3.9) {Maintenance\\Complaints};
+\node[ent] (mess) at (3.3,-3.9) {Mess\\Feedback};
+\node[ent] (laun) at (6.6,-3.9) {Laundry\\Issues};
+\node[ent] (par) at (-5.4,-8.2) {Parent};
+\node[ent] (ward) at (-1.8,-8.2) {Warden /\\Administrator};
+\node[ent] (care) at (1.8,-8.2) {Caretaker};
+\node[ent] (mst) at (4.9,-8.2) {Mess\\Staff};
+\node[ent] (lst) at (8.0,-8.2) {Laundry\\Staff};
 \draw[flow] (stu) -- node[lbl,pos=0.65]{applies for} (room);
 \draw[flow] (stu) -- node[lbl,pos=0.65]{submits} (leave);
-\draw[flow] (stu) -- node[lbl,pos=0.6]{files and\\verifies} (comp);
+\draw[flow] (stu) -- node[lbl,pos=0.55]{files and\\verifies} (comp);
 \draw[flow] (stu) -- node[lbl,pos=0.65]{submits} (mess);
 \draw[flow] (stu) -- node[lbl,pos=0.65]{reports} (laun);
 \draw[flow] (par) -- node[lbl]{verifies} (leave);
@@ -146,11 +192,11 @@ SHARP aims to digitize common hostel workflows that are otherwise managed throug
 \draw[flow] (mst) -- node[lbl]{reviews} (mess);
 \draw[flow] (lst) -- node[lbl]{updates} (laun);
 \end{tikzpicture}
-\caption{Entire work-flow: how the main entities of SHARP interact. Shaded: implemented; unshaded: planned.}
+\caption{Entire work-flow}
 \label{fig:workflow}
 \end{figure}
 
-Figure~\ref{fig:workflow} gives an overview of the project. The entities depend on one another, which gives a simple picture of the functional activities of the system.
+Figure~\ref{fig:workflow} (Entire work-flow) is the overview of the project. The entities depend on one another, which gives a simple picture of the functional activities of the system. In the figure, the shaded entity (Room Allocation) is implemented and all unshaded entities are planned.
 
 \textbf{Student cycle:} a student applies for a room, submits leave requests, files maintenance complaints, submits mess feedback, and reports laundry issues. The student also verifies whether a complaint has really been resolved.
 
@@ -171,6 +217,7 @@ JWT & JSON Web Token, used by the prototype for authentication\\
 HTTPS & Hypertext Transfer Protocol Secure\\
 Cluster & A group of four students occupying two paired rooms that share a washroom\\
 FR & Functional Requirement\\
+DFD & Data Flow Diagram: shows how data moves between external entities, processes, and data stores\\
 \bottomrule
 \end{longtable}
 
@@ -179,7 +226,7 @@ FR & Functional Requirement\\
 \subsection{Product Perspective}
 SHARP is a browser-based web application that replaces paper registers and informal communication in hostel administration. Users interact with role-specific pages, application services process requests, and a database stores user and workflow records. The planned design separates the interface, application/API, workflow services, and persistence layers. The prototype uses Node.js/Express and MongoDB (see Section~\ref{sec:impl}); these are implementation choices and not mandatory product requirements.
 
-\subsection{User Classes and Characteristics}
+\subsection{User Classes and Characteristics}\label{sec:users}
 SHARP has the following user classes (Figure~\ref{fig:users}):
 \begin{itemize}
 \item \textbf{Student:} applies for a room, submits leave requests, maintenance complaints, mess feedback, and laundry issue reports, tracks their status, and verifies complaint resolution.
@@ -207,7 +254,7 @@ Access to each record shall be limited by role and, where applicable, by record 
 \foreach \n in {w,c,m,l}
   \draw[-{Latex}] (staff.south) -- (2.8,-2.8) -| (\n.north);
 \end{tikzpicture}
-\caption{Types of users.}
+\caption{Types of users}
 \label{fig:users}
 \end{figure}
 
@@ -223,44 +270,148 @@ The main functions of SHARP and their current status are:
 \item \textbf{Notifications and reports (Planned, optional):} provide workflow notifications and operational summaries when approved and configured.
 \end{enumerate}
 
-Every user has an account with a role. Students additionally belong to a cluster for room allocation. Figure~\ref{fig:data} shows the conceptual data model, based on the project class diagram; the field names are indicative and the final database schema shall be confirmed during design.
+Every user has an account with a role. Students additionally belong to a cluster for room allocation.
 
-\begin{figure}[!htbp]
+\textbf{Data flow.} Figure~\ref{fig:dfd0} is the context-level (Level~0) data flow diagram. It shows SHARP as a single process and the data exchanged with each external user class. Figure~\ref{fig:dfd1} is the Level~1 data flow diagram, which splits SHARP into six processes (1.0 to 6.0) and six data stores (D1 to D6). In both figures, rectangles are external entities, rounded rectangles are processes, open-ended rectangles are data stores, and arrows are data flows. A double-headed arrow carries two flows; in its label, $\rightarrow$ marks the flow that moves to the right and $\leftarrow$ the flow that moves to the left. In Figure~\ref{fig:dfd1}, an external entity (for example the Student or the Warden / Administrator) is drawn once for each process it interacts with, only to avoid crossing lines. Of the processes, only 2.0 (room allocation) is implemented, 1.0 is partially built, and 3.0 to 6.0 are planned.
+
+\begin{figure}[H]
 \centering
-\begin{tikzpicture}[thead/.append style={text width=34mm},tbody/.append style={text width=34mm}]
-\entity{user}{-6.2}{0}{User}{\textbf{userId}\\name\\email\\role\\passwordHash}
-\entity{student}{-2.1}{0}{Student}{\textbf{studentId}\\\textit{userId}\\hostelBlock\\roomNo\\cgpa\\\textit{clusterId}}
-\entity{leave}{2.0}{0}{Leave Request}{\textbf{requestId}\\\textit{studentId}\\type\\fromDate, toDate\\destination, reason\\status\\parentVerified\\wardenApproved}
-\entity{pass}{6.1}{0}{Digital Pass}{\textbf{passId}\\\textit{requestId}\\issueDate\\validUntil\\status}
-\entity{comp}{-6.2}{-3.9}{Complaint}{\textbf{complaintId}\\\textit{studentId}\\\textit{caretakerId}\\category, priority\\status\\createdAt\\slaDeadline}
-\entity{alloc}{-2.1}{-3.9}{Room Allocation}{\textbf{allocationId}\\\textit{clusterId}\\roomId\\avgCgpa\\status}
-\entity{feed}{2.0}{-3.9}{Mess Feedback}{\textbf{feedbackId}\\\textit{studentId}\\category\\rating\\comments\\createdAt}
-\entity{laun}{6.1}{-3.9}{Laundry Issue}{\textbf{issueId}\\\textit{studentId}\\type, description\\status\\reportedAt}
-\draw[flow] (userh.east) -- (studenth.west);
-\draw[flow] (leaveh.east) -- (passh.west);
-\end{tikzpicture}
-\caption{Conceptual data model. Bold: primary key; italic: foreign key; arrows: User is specialized by Student, and a Leave Request may produce one Digital Pass. Warden, Caretaker, Mess Staff and Laundry Staff are users with the corresponding role.}
-\label{fig:data}
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[ext/.append style={minimum height=14mm}]
+\node[proc,text width=26mm,minimum height=116mm,font=\small\bfseries] (sys) at (0,0) {0\\SHARP\\System};
+\node[ext] (stu) at (-7.4,2.4)  {Student};
+\node[ext] (par) at (-7.4,-2.4) {Parent};
+\node[ext] (war) at (7.4,4.5)   {Warden /\\Administrator};
+\node[ext] (car) at (7.4,1.5)   {Caretaker};
+\node[ext] (mst) at (7.4,-1.5)  {Mess Staff};
+\node[ext] (lst) at (7.4,-4.5)  {Laundry Staff};
+\bflow{stu.east}{sys.west |- stu.east}{$\rightarrow$ room preferences, leave requests, complaints, feedback, laundry reports\\$\leftarrow$ allocation result, request status, digital pass}
+\bflow{par.east}{sys.west |- par.east}{$\rightarrow$ verify / decline leave\\$\leftarrow$ linked student's leave requests}
+\bflow{sys.east |- war.west}{war.west}{$\leftarrow$ leave decisions, complaint assignment, accounts and roles\\$\rightarrow$ pending requests, SLA alerts, reports}
+\bflow{sys.east |- car.west}{car.west}{$\leftarrow$ repair slot, progress, completion\\$\rightarrow$ assigned complaints}
+\oflow{sys.east |- mst.west}{mst.west}{categorized feedback (reporter identity hidden)}
+\bflow{sys.east |- lst.west}{lst.west}{$\leftarrow$ status updates\\$\rightarrow$ reported issues}
+\end{tikzpicture}}
+\caption{Data Flow Diagram (Level 0)}
+\label{fig:dfd0}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[ext/.append style={minimum width=24mm,minimum height=11mm},proc/.append style={text width=30mm}]
+% processes (one row each), data store directly below the process
+\node[proc] (p1) at (0,0)     {1.0 Manage accounts\\and roles};
+\node[proc] (p2) at (0,-4.0)  {2.0 Allocate\\rooms};
+\node[proc] (p3) at (0,-8.0)  {3.0 Process leave\\and passes};
+\node[proc] (p4) at (0,-12.0) {4.0 Manage maintenance\\complaints};
+\node[proc] (p5) at (0,-16.0) {5.0 Collect mess\\feedback};
+\node[proc] (p6) at (0,-20.0) {6.0 Track laundry\\issues};
+\dstore{d1}{0}{-1.95}  {\textbf{D1}~Users and roles}
+\dstore{d2}{0}{-5.95}  {\textbf{D2}~Room allocations}
+\dstore{d3}{0}{-9.95}  {\textbf{D3}~Leave requests and passes}
+\dstore{d4}{0}{-13.95} {\textbf{D4}~Complaints}
+\dstore{d5}{0}{-17.95} {\textbf{D5}~Mess feedback}
+\dstore{d6}{0}{-21.95} {\textbf{D6}~Laundry issues}
+\foreach \p/\d in {p1/d1,p2/d2,p3/d3,p4/d4,p5/d5,p6/d6}
+  {\draw[{Latex}-{Latex},thick] (\p.south) -- (\d.north);}
+% Student (repeated for each process)
+\foreach \n/\y in {1/0,2/-4,3/-8,4/-12,5/-16,6/-20} {\node[ext] (s\n) at (-7.4,\y) {Student};}
+\bflow{s1.east}{p1.west}{$\rightarrow$ login credentials\\$\leftarrow$ role-based access}
+\bflow{s2.east}{p2.west}{$\rightarrow$ cluster and room preferences\\$\leftarrow$ allocation result}
+\bflow{s3.east}{p3.west}{$\rightarrow$ leave request\\$\leftarrow$ status, digital pass}
+\bflow{s4.east}{p4.west}{$\rightarrow$ complaint, verification\\$\leftarrow$ status, history}
+\bflow{s5.east}{p5.west}{$\rightarrow$ mess feedback\\$\leftarrow$ submission receipt}
+\bflow{s6.east}{p6.west}{$\rightarrow$ laundry issue report\\$\leftarrow$ issue status}
+% Staff entities (right)
+\node[ext] (w1) at (7.4,0)       {Warden /\\Administrator};
+\node[ext] (pa) at (7.4,-7.05)   {Parent};
+\node[ext] (w3) at (7.4,-8.95)   {Warden /\\Administrator};
+\node[ext] (w4) at (7.4,-11.05)  {Warden /\\Administrator};
+\node[ext] (ca) at (7.4,-12.95)  {Caretaker};
+\node[ext] (ms) at (7.4,-16)     {Mess Staff};
+\node[ext] (ls) at (7.4,-20)     {Laundry Staff};
+\bflow{p1.east}{w1.west}{$\leftarrow$ accounts, roles, parent links\\$\rightarrow$ account records}
+\bflow{$(p3.east)+(0,0.4)$}{pa.west}{$\leftarrow$ verify / decline\\$\rightarrow$ linked leave requests}
+\bflow{$(p3.east)+(0,-0.4)$}{w3.west}{$\leftarrow$ approve / reject\\$\rightarrow$ verified requests}
+\bflow{$(p4.east)+(0,0.4)$}{w4.west}{$\leftarrow$ caretaker assignment\\$\rightarrow$ complaints, SLA alerts}
+\bflow{$(p4.east)+(0,-0.4)$}{ca.west}{$\leftarrow$ slot, progress, completion\\$\rightarrow$ assigned work}
+\oflow{p5.east}{ms.west}{feedback without\\reporter identity}
+\bflow{p6.east}{ls.west}{$\leftarrow$ status updates\\$\rightarrow$ reported issues}
+\end{tikzpicture}}
+\caption{Data Flow Diagram (Level 1)}
+\label{fig:dfd1}
 \end{figure}
 
 \subsection{Operating Environment}
 The system shall be accessed through a modern web browser on a network-connected desktop or mobile device. The server shall run a web application with persistent database storage. The supported browser versions and the hosting environment shall be confirmed before deployment. Offline operation is not required.
 
 \subsection{Design}
-The system shall use role-specific pages and forms. Forms shall identify required fields and display validation errors. Users shall be able to view the current status of their own requests and the history permitted by their role. Figure~\ref{fig:roles} summarizes the activities of each user class.
+The system shall use role-specific pages and forms. Forms shall identify required fields and display validation errors. Users shall be able to view the current status of their own requests and the history permitted by their role.
+
+Student activities have 3 stages (Figure~\ref{fig:student}):
+\begin{itemize}
+\item Room Allocation Process
+\item Service Requests
+\item Student Dashboard
+\end{itemize}
+A student first forms a cluster of four, and the cluster leader submits three room preferences. After the automatic allocation, the student can submit leave requests, complaints, mess feedback and laundry reports, and track or verify them. Every student dashboard contains the allocated room, leave status and digital pass, complaint status, mess feedback and laundry issue status.
 
 \begin{figure}[H]
 \centering
-\begin{minipage}[t]{0.235\linewidth}\cardhead{Student}\carda{Room allocation}\cardb{Submit leave request*}\carda{Track leave status / digital pass*}\cardb{File complaint, verify resolution*}\carda{Submit mess feedback*}\cardb{Report laundry issue*}\end{minipage}\hfill
-\begin{minipage}[t]{0.235\linewidth}\cardhead{Parent}\carda{View linked student's requests*}\cardb{Verify / decline leave*}\end{minipage}\hfill
-\begin{minipage}[t]{0.235\linewidth}\cardhead{Warden / Administrator}\carda{Approve / reject leave*}\cardb{Assign complaints*}\carda{Monitor SLA breaches*}\cardb{Provision accounts and roles*}\carda{View reports*}\end{minipage}\hfill
-\begin{minipage}[t]{0.235\linewidth}\cardhead{Caretaker}\carda{Accept assigned work*}\cardb{Propose repair slot*}\carda{Update progress*}\cardb{Mark work complete*}\end{minipage}
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\begin{tikzpicture}
+\procbox{b1}{0}{0}{Room Allocation Process}{Form cluster\\(4 students)}{Leader submits\\3 room preferences}{Automatic allocation\\(cluster-avg CGPA)}
+\procbox{b2}{8.6}{-3.0}{Service Requests}{Submit request}{Track status /\\digital pass}{Verify\\resolution}
+\card{sd}{3.0}{-7.4}{Student Dashboard}{{Allocated room},{Leave status / digital pass},{Complaint status},{Mess feedback},{Laundry issue status}}
+\draw[flow] (b1e) to[out=0,in=90] (b2n);
+\draw[flow] (b2s) to[out=-90,in=0] (sd3.east);
+\end{tikzpicture}
+\caption{Student Activities}
+\label{fig:student}
+\end{figure}
 
-\vspace{10pt}
-\begin{minipage}[t]{0.31\linewidth}\cardhead{Mess Staff}\carda{Review categorized feedback*}\end{minipage}\hspace{0.04\linewidth}
-\begin{minipage}[t]{0.31\linewidth}\cardhead{Laundry Staff}\carda{Update laundry issue status*}\end{minipage}
-\caption{Activities of each user class. Items marked * are planned; the others are implemented.}
-\label{fig:roles}
+Parent activities (Figure~\ref{fig:parent}) have 2 steps: view the requests of the linked student and verify or decline a leave request.
+
+\begin{figure}[H]
+\centering
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\begin{tikzpicture}
+\card{pa}{0}{0}{Parent}{{View linked student's requests},{Verify / decline leave}}
+\end{tikzpicture}
+\caption{Parent Activities}
+\label{fig:parent}
+\end{figure}
+
+Hostel staff activities have 2 types (Figure~\ref{fig:hostel}): Warden / Administrator and Caretaker. The Warden / Administrator can approve or reject leave, assign complaints, monitor SLA breaches, provision accounts and roles, and view reports. The caretaker accepts the complaints assigned by the warden, proposes a repair slot, updates progress and marks work complete.
+
+\begin{figure}[H]
+\centering
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\begin{tikzpicture}
+\card{wd}{0}{0}{Warden / Administrator}{{Approve / reject leave},{Assign complaints},{Monitor SLA breaches},{Provision accounts and roles},{View reports}}
+\card{ct}{6.4}{-1.2}{Caretaker}{{Accept assigned work},{Propose repair slot},{Update progress},{Mark work complete}}
+\draw[flow] (wd2.east) to[out=0,in=180] (cth.west);
+\roleframe{(wdh)(wd5)(cth)(ct4)}{Hostel Staff}
+\end{tikzpicture}
+\caption{Hostel Staff Activities}
+\label{fig:hostel}
+\end{figure}
+
+Service staff have only one activity each (Figure~\ref{fig:service}): mess staff review categorized feedback, and laundry staff update the status of laundry issues. Both are planned for a later phase.
+
+\begin{figure}[H]
+\centering
+\hyphenpenalty=10000 \exhyphenpenalty=10000 
+\begin{tikzpicture}
+\card{ms}{0}{0}{Mess Staff}{{Review categorized feedback}}
+\card{ls}{5.6}{0}{Laundry Staff}{{Update laundry issue status}}
+\roleframe{(msh)(ms1)(lsh)(ls1)}{Service Staff}
+\end{tikzpicture}
+\caption{Service Staff Activities}
+\label{fig:service}
 \end{figure}
 
 \textbf{Room allocation (implemented).} Users provide roommate/cluster preferences. A cluster contains four students occupying two paired rooms that share a washroom. The cluster leader submits three room preferences, and automatic allocation uses cluster-average CGPA to resolve competing preferences. Further validation and acceptance testing should confirm edge cases and allocation fairness.
@@ -269,9 +420,9 @@ The system shall use role-specific pages and forms. Forms shall identify require
 
 \textbf{Complaint process (planned).} Student submission, complaint ID and priority, caretaker assignment, repair-slot agreement (or an alternative slot proposed by the caretaker), repair, and student verification (Figure~\ref{fig:complaint}). Verified complaints are closed; a rejected resolution reopens the same complaint record. An SLA breach notifies the warden.
 
-\begin{figure}[!htbp]
+\begin{figure}[H]
 \centering
-\begin{tikzpicture}[scale=0.82,transform shape,node distance=8mm]
+\begin{tikzpicture}[scale=0.9,transform shape,node distance=13mm]
 \node[flowbox] (submit) {Student submits\\leave request};
 \node[flowbox,below=of submit] (parent) {Parent verifies,\\if required};
 \node[flowbox,below=of parent] (warden) {Warden reviews\\request};
@@ -283,13 +434,13 @@ The system shall use role-specific pages and forms. Forms shall identify require
 \draw[flow] (parent) -- node[lbl]{declined} (decline);
 \draw[flow] (warden.east) -| node[lbl,pos=0.25]{rejected} (decline.south);
 \end{tikzpicture}
-\caption{Leave/pass workflow (planned).}
+\caption{Leave/pass workflow}
 \label{fig:leave}
 \end{figure}
 
-\begin{figure}[!tbp]
+\begin{figure}[H]
 \centering
-\begin{tikzpicture}[x=1cm,y=0.69cm,flowbox/.append style={minimum height=5mm,font=\footnotesize,text width=44mm},decision/.append style={font=\footnotesize}]
+\begin{tikzpicture}[x=1cm,y=0.86cm,flowbox/.append style={minimum height=5mm,font=\footnotesize,text width=44mm},decision/.append style={font=\footnotesize}]
 \node[circle,fill=black,minimum size=4mm,inner sep=0pt] (start) at (0,1.0) {};
 \node[flowbox,text width=64mm] (c1) at (0,0) {Student files maintenance complaint};
 \node[flowbox] (c2) at (0,-1.2) {Generate complaint ID};
@@ -332,10 +483,11 @@ The system shall use role-specific pages and forms. Forms shall identify require
 \draw[flow] (d3.south) -- node[lbl]{no} (end);
 \draw[flow] (nw.south) |- (end.east);
 \end{tikzpicture}
-\caption{Maintenance complaint activity diagram (planned).}
+\caption{Maintenance complaint activity diagram}
 \label{fig:complaint}
 \end{figure}
 
+\FloatBarrier
 % =====================================================================
 \section{System Features}
 SHARP is a hostel workflow platform. Its main purpose is to move the common hostel processes from paper and informal messages into one role-controlled system.

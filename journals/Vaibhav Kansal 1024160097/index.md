@@ -38,6 +38,7 @@ Development journal for the SHARP project.
 - Tested the complete user workflow.
 - Debugged errors and improved the overall interface.
 
+
 ### Current Status
 The prototype currently includes:
 - Student Portal

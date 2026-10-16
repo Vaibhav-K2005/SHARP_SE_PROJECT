@@ -1,6 +1,7 @@
 // server/routes/admin.js
 import express from 'express';
 import { db } from '../data/db.js';
+import { notifyStudents } from '../utils/notifications.js';
 
 const router = express.Router();
 
@@ -110,7 +111,22 @@ router.get('/semesters', (req, res) => {
 
 router.post('/semesters/update', (req, res) => {
   const { id, updates } = req.body;
+  const current = db.findById('semesters', id);
+  if (!current) return res.status(404).json({ error: 'Semester not found' });
+
+  const phaseChanged = updates?.activePhase !== undefined && updates.activePhase !== current.activePhase;
+  const statusChanged = updates?.allotmentStatus !== undefined && updates.allotmentStatus !== current.allotmentStatus;
   const updated = db.update('semesters', id, updates);
+
+  if (phaseChanged || statusChanged) {
+    const state = updated.allotmentStatus === 'ACTIVE'
+      ? `Phase ${updated.activePhase} is now open`
+      : updated.allotmentStatus === 'ENDED'
+        ? 'Room allotment has ended'
+        : `Allotment is currently ${updated.allotmentStatus || 'not started'}`;
+    notifyStudents(`${state}.`);
+  }
+
   res.json({ success: true, semester: updated });
 });
 
