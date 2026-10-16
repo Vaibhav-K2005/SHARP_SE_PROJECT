@@ -1,6 +1,9 @@
 ## Python.gitignore
 ## ----------------------------------------------------
 
+# Local demo handoff notes
+DEMO_FEATURE_HANDOFF.txt
+
 ﻿assets/icons/
 
 # Byte-compiled / optimized / DLL files

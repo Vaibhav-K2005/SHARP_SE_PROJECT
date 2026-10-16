@@ -27,4 +27,18 @@ The platform brings together **leave and visitor management, mess management, ro
 **Session:** 2026–27 ODD
 **Institution:** Thapar Institute of Engineering and Technology
 
-> The repository will be expanded with source code, documentation, development journals, testing, and implementation details as the project progresses.
+## Repository layout
+
+- `code/` — application source (`server/`, `public/`), automated tests (`tests/`), and Node.js project manifests.
+- `docs/` — project documentation and diagrams (`docs/diagrams/`).
+- `SHARP prototype/` — approved proposal, UML project report, and SRS.
+- `journals/` — project development journals.
+
+Run the application or tests from `code/`:
+
+```sh
+cd code
+npm install
+npm test
+npm start
+```
