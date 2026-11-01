@@ -39,7 +39,8 @@ export class CaretakerPortal {
     const navItems = [
       { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard' },
       { id: 'allocation-center', icon: 'fa-arrows-split-up-and-left', label: 'Room Allocation' },
-      { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' }
+      { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' },
+      { id: 'complaints', icon: 'fa-screwdriver-wrench', label: 'Complaints' }
     ];
 
     if (!navItems.some(item => item.id === this.activeTab)) {
@@ -58,6 +59,10 @@ export class CaretakerPortal {
 
       <div class="portal-pane ${this.activeTab === 'hostel-map' ? 'active' : ''}" id="ct-pane-map">
         ${this.renderHostelMapSection(hostelName)}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="ct-pane-complaints">
+        ${this.renderComplaintsSection(hostelName)}
       </div>
     `;
 
@@ -119,7 +124,7 @@ export class CaretakerPortal {
         <div class="card-header">
           <div>
             <h3 class="card-title"><i class="fa-solid fa-list-check"></i> Daily Actions</h3>
-            <p class="card-subtitle">Use the room allocation and floor-map tools for this demo. Complaints and entry approvals are hidden.</p>
+            <p class="card-subtitle">Review and resolve resident complaints, manage room allocation, and inspect the floor map.</p>
           </div>
         </div>
         <div class="demo-action-grid two-up">
@@ -130,6 +135,10 @@ export class CaretakerPortal {
           <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-map">
             <i class="fa-solid fa-hotel" style="color: var(--info);"></i>
             <span>Open Floor Plan Map</span>
+          </button>
+          <button class="btn btn-secondary btn-large-action" id="btn-ct-dashboard-complaints">
+            <i class="fa-solid fa-screwdriver-wrench" style="color: var(--warning);"></i>
+            <span>Open Complaints Queue</span>
           </button>
         </div>
       </div>
@@ -367,7 +376,7 @@ export class CaretakerPortal {
 
     try {
       const hostelName = this.user.hostelName || 'Hostel O';
-      const res = await fetch(`/api/complaints/hostel/${encodeURIComponent(hostelName)}`);
+      const res = await fetch(`/api/complaints/hostel/${encodeURIComponent(hostelName)}?caretakerId=${encodeURIComponent(this.user.id)}`);
       const data = await res.json();
       const complaints = data.complaints || [];
 
@@ -389,21 +398,31 @@ export class CaretakerPortal {
                   </div>
                 </div>
                 <div style="display: flex; gap: 8px; align-items: center;">
-                  <select class="form-select ct-comp-status-select" data-id="${c.id}" style="font-size: 0.78rem; padding: 4px 8px; width: auto;">
-                    <option value="SUBMITTED" ${c.status === 'SUBMITTED' ? 'selected' : ''}>Submitted</option>
-                    <option value="UNDER_REVIEW" ${c.status === 'UNDER_REVIEW' ? 'selected' : ''}>Under Review</option>
-                    <option value="IN_PROGRESS" ${c.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
-                    <option value="RESOLVED" ${c.status === 'RESOLVED' ? 'selected' : ''}>Resolved</option>
-                  </select>
+                  ${c.status === 'CLOSED' ? `
+                    <span class="status-pill success">Resolved by student</span>
+                  ` : `
+                    <select class="form-select ct-comp-status-select" data-id="${c.id}" style="font-size: 0.78rem; padding: 4px 8px; width: auto;">
+                      <option value="SUBMITTED" ${c.status === 'SUBMITTED' ? 'selected' : ''}>Submitted</option>
+                      <option value="UNDER_REVIEW" ${c.status === 'UNDER_REVIEW' ? 'selected' : ''}>Under Review</option>
+                      <option value="IN_PROGRESS" ${c.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                      <option value="REOPENED" ${c.status === 'REOPENED' ? 'selected' : ''}>Reopened by student</option>
+                      <option value="RESOLVED" ${['AWAITING_STUDENT_CONFIRMATION', 'RESOLVED'].includes(c.status) ? 'selected' : ''}>Work completed - awaiting student</option>
+                    </select>
+                  `}
                 </div>
               </div>
 
               <p style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 10px;">${c.description}</p>
+              <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px;">Mark work as completed to request resolution confirmation from the student. Only the student can close the complaint.</p>
 
-              <div style="display: flex; gap: 8px;">
-                <input type="text" class="form-input ct-comp-notes" data-id="${c.id}" placeholder="Add caretaker action note..." value="${c.caretakerNotes || ''}" style="font-size: 0.8rem;">
-                <button class="btn btn-secondary btn-sm btn-save-comp-note" data-id="${c.id}">Save</button>
-              </div>
+              ${c.status === 'CLOSED' ? `
+                <div style="font-size: 0.8rem; color: var(--success);">The student confirmed that this issue is resolved.</div>
+              ` : `
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" class="form-input ct-comp-notes" data-id="${c.id}" placeholder="Add caretaker action note..." value="${c.caretakerNotes || ''}" style="font-size: 0.8rem;">
+                  <button class="btn btn-secondary btn-sm btn-save-comp-note" data-id="${c.id}">Save</button>
+                </div>
+              `}
             </div>
           `).join('')}
         </div>
@@ -630,6 +649,16 @@ export class CaretakerPortal {
         this.render();
         this.attachEvents();
         this.initHostelMap();
+      });
+    }
+
+    const btnDashboardComplaints = document.getElementById('btn-ct-dashboard-complaints');
+    if (btnDashboardComplaints) {
+      btnDashboardComplaints.addEventListener('click', () => {
+        this.activeTab = 'complaints';
+        this.render();
+        this.attachEvents();
+        this.loadComplaints();
       });
     }
 

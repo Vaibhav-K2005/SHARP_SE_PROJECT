@@ -310,6 +310,15 @@ export function getInitialData() {
         hostelId: "hostel-m",
         hostelName: "Hostel M (Anantam Hall)",
         phone: "+91 98765 43210"
+      },
+      {
+        id: "mess-manager-o",
+        role: "mess_manager",
+        fullName: "Mess Manager Demo",
+        email: "mess.manager@thapar.edu",
+        verified: true,
+        hostelName: "Hostel O",
+        messName: "Hostel O Mess"
       }
     ],
 
@@ -363,6 +372,15 @@ export function getTestSeedData() {
         hostelId: "hostel-m",
         hostelName: "Hostel M (Anantam Hall)",
         phone: "+91 98765 43210"
+      },
+      {
+        id: "mess-manager-o",
+        role: "mess_manager",
+        fullName: "Mess Manager Demo",
+        email: "mess.manager@thapar.edu",
+        verified: true,
+        hostelName: "Hostel O",
+        messName: "Hostel O Mess"
       },
       {
         id: "student-a",

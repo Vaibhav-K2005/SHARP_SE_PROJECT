@@ -5,6 +5,7 @@ import { StudentPortal } from './studentPortal.js';
 import { ParentPortal } from './parentPortal.js';
 import { CaretakerPortal } from './caretakerPortal.js';
 import { AdminPortal } from './adminPortal.js';
+import { MessManagerPortal } from './messManagerPortal.js';
 
 class SharpApp {
   constructor() {
@@ -125,6 +126,7 @@ class SharpApp {
     const students = this.demoUsers.students || [];
     const parents = this.demoUsers.parents || [];
     const caretakers = this.demoUsers.caretakers || [];
+    const messManagers = this.demoUsers.messManagers || [];
     const admins = this.demoUsers.admins || [];
 
     const pills = [];
@@ -137,6 +139,11 @@ class SharpApp {
     // Add registered caretakers
     caretakers.forEach(c => {
       pills.push({ label: `Caretaker (${c.hostelName?.split(' ')[0] || c.fullName.split(' ')[0]})`, user: c, icon: 'fa-building-user' });
+    });
+
+    // Add registered mess managers
+    messManagers.forEach(m => {
+      pills.push({ label: `Mess Manager (${m.messName?.split(' ')[0] || m.fullName.split(' ')[0]})`, user: m, icon: 'fa-utensils' });
     });
 
     // Add registered students
@@ -449,6 +456,8 @@ class SharpApp {
       this.currentPortalInstance = new CaretakerPortal(this, user);
     } else if (user.role === 'admin') {
       this.currentPortalInstance = new AdminPortal(this, user);
+    } else if (user.role === 'mess_manager') {
+      this.currentPortalInstance = new MessManagerPortal(this, user);
     }
 
     if (this.currentPortalInstance) {
@@ -594,9 +603,10 @@ class SharpApp {
     const students = this.demoUsers?.students || [];
     const parents = this.demoUsers?.parents || [];
     const caretakers = this.demoUsers?.caretakers || [];
+    const messManagers = this.demoUsers?.messManagers || [];
     const admins = this.demoUsers?.admins || [];
 
-    const allUsers = [...admins, ...caretakers, ...students, ...parents];
+    const allUsers = [...admins, ...caretakers, ...messManagers, ...students, ...parents];
 
     let quickPicksHtml = '';
     if (allUsers.length > 0) {
@@ -625,6 +635,7 @@ class SharpApp {
           <option value="student" ${initialRole === 'student' ? 'selected' : ''}>Student</option>
           <option value="parent" ${initialRole === 'parent' ? 'selected' : ''}>Parent</option>
           <option value="caretaker" ${initialRole === 'caretaker' ? 'selected' : ''}>Hostel Caretaker</option>
+          <option value="mess_manager" ${initialRole === 'mess_manager' ? 'selected' : ''}>Mess Manager</option>
           <option value="admin" ${initialRole === 'admin' ? 'selected' : ''}>Administrator (Board)</option>
         </select>
       </div>
@@ -701,6 +712,9 @@ class SharpApp {
         </button>
         <button id="tab-reg-caretaker" class="btn btn-sm ${initialRole === 'caretaker' ? 'btn-primary' : 'btn-secondary'}" style="flex: 1;">
           <i class="fa-solid fa-building-user"></i> Caretaker
+        </button>
+        <button id="tab-reg-mess-manager" class="btn btn-sm ${initialRole === 'mess_manager' ? 'btn-primary' : 'btn-secondary'}" style="flex: 1;">
+          <i class="fa-solid fa-utensils"></i> Mess Manager
         </button>
       </div>
 
@@ -955,6 +969,51 @@ class SharpApp {
           </button>
         </div>
       </div>
+
+      <!-- ================= 4. MESS MANAGER REGISTRATION WORKFLOW ================= -->
+      <div id="section-mess-manager-reg" style="display: ${initialRole === 'mess_manager' ? 'block' : 'none'};">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; margin-bottom: 18px;">
+          <strong style="font-size: 0.95rem; color: var(--primary); display: block; margin-bottom: 4px;">
+            <i class="fa-solid fa-utensils"></i> Mess Manager Registration
+          </strong>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 14px;">Register for the mess you are responsible for to manage feedback and meal service.</p>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input type="text" id="mess-manager-fullname" class="form-input" placeholder="e.g. Mess Manager">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Official Email ID *</label>
+              <input type="email" id="mess-manager-email" class="form-input" placeholder="e.g. manager@thapar.edu">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Assigned Mess *</label>
+              <select id="mess-manager-mess" class="form-select">
+                <option value="Hostel M (Anantam Hall) Mess">Hostel M (Anantam Hall) Mess</option>
+                <option value="Hostel A (Agira Hall) Mess">Hostel A (Agira Hall) Mess</option>
+                <option value="Hostel O Mess">Hostel O Mess</option>
+                <option value="Hostel B Mess">Hostel B Mess</option>
+                <option value="Hostel J Mess">Hostel J Mess</option>
+                <option value="Hostel H Mess">Hostel H Mess</option>
+                <option value="Hostel Q Mess">Hostel Q Mess</option>
+                <option value="Hostel N Mess">Hostel N Mess</option>
+                <option value="Hostel E Mess">Hostel E Mess</option>
+                <option value="Hostel F (First Year Boys) Mess">Hostel F (First Year Boys) Mess</option>
+                <option value="Hostel G (First Year Girls) Mess">Hostel G (First Year Girls) Mess</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Contact Phone Number</label>
+              <input type="text" id="mess-manager-phone" class="form-input" placeholder="+91 98765 43210">
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btn-mess-manager-submit" style="width: 100%; margin-top: 10px;">
+            <i class="fa-solid fa-utensils"></i> Register & Open Mess Manager Portal
+          </button>
+        </div>
+      </div>
     `;
 
     this.openModal('Register for SHARP', modalBody);
@@ -963,6 +1022,8 @@ class SharpApp {
     const tabStu = document.getElementById('tab-reg-student');
     const tabPar = document.getElementById('tab-reg-parent');
     const tabCar = document.getElementById('tab-reg-caretaker');
+    const tabMessManager = document.getElementById('tab-reg-mess-manager');
+    const secMessManager = document.getElementById('section-mess-manager-reg');
     const secStu = document.getElementById('section-student-reg');
     const secPar = document.getElementById('section-parent-reg');
     const secCar = document.getElementById('section-caretaker-reg');
@@ -972,15 +1033,18 @@ class SharpApp {
       tabStu.className = role === 'student' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
       tabPar.className = role === 'parent' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
       tabCar.className = role === 'caretaker' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      tabMessManager.className = role === 'mess_manager' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
 
       secStu.style.display = role === 'student' ? 'block' : 'none';
       secPar.style.display = role === 'parent' ? 'block' : 'none';
       secCar.style.display = role === 'caretaker' ? 'block' : 'none';
+      secMessManager.style.display = role === 'mess_manager' ? 'block' : 'none';
     };
 
     tabStu?.addEventListener('click', () => selectTab('student'));
     tabPar?.addEventListener('click', () => selectTab('parent'));
     tabCar?.addEventListener('click', () => selectTab('caretaker'));
+    tabMessManager?.addEventListener('click', () => selectTab('mess_manager'));
 
     // Dynamic Roll Number Admission Year Detection
     const stuRollInput = document.getElementById('stu-rollno');
@@ -1284,6 +1348,36 @@ class SharpApp {
         this.toast(data.message || 'Caretaker registered successfully!', 'success');
         this.closeModal();
 
+        await this.fetchDemoUsers();
+        this.switchUser(data.user);
+      } catch (err) {
+        this.toast(err.message, 'danger');
+      }
+    });
+
+    // 7. Submit Mess Manager Registration
+    document.getElementById('btn-mess-manager-submit')?.addEventListener('click', async () => {
+      const fullName = document.getElementById('mess-manager-fullname')?.value.trim();
+      const email = document.getElementById('mess-manager-email')?.value.trim().toLowerCase();
+      const messName = document.getElementById('mess-manager-mess')?.value;
+      const phone = document.getElementById('mess-manager-phone')?.value.trim();
+
+      if (!fullName || !email || !messName) {
+        this.toast('Please provide your name, official email, and assigned mess', 'warning');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'mess_manager', fullName, email, messName, phone })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        this.toast(data.message || 'Mess Manager registered successfully!', 'success');
+        this.closeModal();
         await this.fetchDemoUsers();
         this.switchUser(data.user);
       } catch (err) {

@@ -4,12 +4,12 @@
       "id": "sem-2026-s1",
       "name": "2026–27 Semester 1",
       "status": "ACTIVE",
-      "allotmentStatus": "ACTIVE",
+      "allotmentStatus": "NOT_STARTED",
       "currentPhase": "Phase 1: Pre-Allocation",
       "phaseNumber": 1,
       "activePhase": 1,
-      "allocationStartDate": "2026-10-16T07:49:16.632Z",
-      "allocationEndDate": "2026-10-16T07:49:10.184Z",
+      "allocationStartDate": "2026-09-01",
+      "allocationEndDate": "2026-09-30",
       "academicYear": 2026
     }
   ],
@@ -111,7 +111,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 620,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -128,7 +128,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 580,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -146,7 +146,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 690,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -164,7 +164,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 510,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -182,7 +182,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 540,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -200,7 +200,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 490,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -218,7 +218,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 590,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -236,7 +236,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 600,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -254,7 +254,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 560,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -270,7 +270,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 800,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     },
@@ -286,7 +286,7 @@
       "totalFloors": 8,
       "roomsPerFloor": 50,
       "capacity": 800,
-      "occupied": 800,
+      "occupied": 0,
       "status": "ACTIVE",
       "caretakerId": null
     }
@@ -303,7 +303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -318,7 +318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -333,7 +333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -3303,7 +3303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -3318,7 +3318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -3333,7 +3333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -6303,7 +6303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -6318,7 +6318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -6333,7 +6333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -9303,7 +9303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -9318,7 +9318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -9333,7 +9333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -12303,7 +12303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -12318,7 +12318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -12333,7 +12333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -15303,7 +15303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -15318,7 +15318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -15333,7 +15333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -18303,7 +18303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -18318,7 +18318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -18333,7 +18333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -21303,7 +21303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -21318,7 +21318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -21333,7 +21333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -24303,7 +24303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -24318,7 +24318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -24333,7 +24333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -27303,7 +27303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -27318,7 +27318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -27333,7 +27333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -30303,7 +30303,7 @@
       "sharedWashroom": "Washroom W-101/102",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -30318,7 +30318,7 @@
       "sharedWashroom": "Washroom W-103/104",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -30333,7 +30333,7 @@
       "sharedWashroom": "Washroom W-105/106",
       "wing": "West Wing",
       "capacity": 4,
-      "status": "ALLOCATED",
+      "status": "AVAILABLE",
       "allocatedClusterId": null,
       "occupants": []
     },
@@ -33313,338 +33313,21 @@
       "phone": "+91 98765 43210"
     },
     {
-      "id": "student-a",
-      "role": "student",
-      "fullName": "Vaibhav Kansal",
-      "rollNumber": "1024160097",
-      "email": "vaibhav@thapar.edu",
-      "academicYear": 3,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 9.2,
-      "cgpaVerified": true,
-      "currentHostel": "Hostel O",
-      "currentRoom": "102",
-      "currentRoommates": [
-        "Ayush Kamboj"
-      ],
-      "parentEmail": "parent.vaibhav@example.com",
-      "phone": "+91 98111 22334",
-      "address": "House 45, Model Town, Patiala",
+      "id": "mess-manager-o",
+      "role": "mess_manager",
+      "fullName": "Mess Manager Demo",
+      "email": "mess.manager@thapar.edu",
       "verified": true,
-      "clusterId": "cluster-21",
-      "allocationStatus": "PRE_ALLOCATION"
-    },
-    {
-      "id": "student-b",
-      "role": "student",
-      "fullName": "Ayush Kamboj",
-      "rollNumber": "1024160118",
-      "email": "ayush@thapar.edu",
-      "academicYear": 3,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 8.4,
-      "cgpaVerified": true,
-      "currentHostel": "Hostel O",
-      "currentRoom": "102",
-      "currentRoommates": [
-        "Vaibhav Kansal"
-      ],
-      "parentEmail": "parent.ayush@example.com",
-      "phone": "+91 98222 33445",
-      "address": "78 Civil Lines, Yamunanagar",
-      "verified": true,
-      "clusterId": "cluster-21",
-      "allocationStatus": "PRE_ALLOCATION"
-    },
-    {
-      "id": "student-c",
-      "role": "student",
-      "fullName": "Ali Ekram",
-      "rollNumber": "1024160138",
-      "email": "ali@thapar.edu",
-      "academicYear": 3,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 8,
-      "cgpaVerified": true,
-      "currentHostel": "Hostel O",
-      "currentRoom": "104",
-      "currentRoommates": [
-        "Rohan Gupta"
-      ],
-      "parentEmail": "parent.ali@example.com",
-      "phone": "+91 98333 44556",
-      "address": "12 Sector 14, Chandigarh",
-      "verified": true,
-      "clusterId": "cluster-21",
-      "allocationStatus": "PRE_ALLOCATION"
-    },
-    {
-      "id": "student-d",
-      "role": "student",
-      "fullName": "Rohan Gupta",
-      "rollNumber": "1024160099",
-      "email": "rohan@thapar.edu",
-      "academicYear": 3,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 7.6,
-      "cgpaVerified": true,
-      "currentHostel": "Hostel O",
-      "currentRoom": "104",
-      "currentRoommates": [
-        "Ali Ekram"
-      ],
-      "parentEmail": "parent.rohan@example.com",
-      "phone": "+91 98444 55667",
-      "address": "56 Urban Estate, Phase 2, Patiala",
-      "verified": true,
-      "clusterId": "cluster-21",
-      "allocationStatus": "PRE_ALLOCATION"
-    },
-    {
-      "id": "student-e",
-      "role": "student",
-      "fullName": "Karan Johar",
-      "rollNumber": "1024160035",
-      "email": "karan@thapar.edu",
-      "academicYear": 3,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 9,
-      "cgpaVerified": true,
-      "currentHostel": "Hostel O",
-      "currentRoom": "201",
-      "currentRoommates": [
-        "Aman Deep"
-      ],
-      "parentEmail": "parent.karan@example.com",
-      "phone": "+91 98555 66778",
-      "address": "88 Sector 22, Chandigarh",
-      "verified": true,
-      "clusterId": "cluster-35",
-      "allocationStatus": "PRE_ALLOCATION"
-    },
-    {
-      "id": "student-firstyear",
-      "role": "student",
-      "fullName": "Kabir Singh",
-      "rollNumber": "1026160001",
-      "email": "kabir@thapar.edu",
-      "academicYear": 1,
-      "course": "B.Tech Computer Engineering",
-      "gender": "Male",
-      "cgpa": 0,
-      "cgpaVerified": false,
-      "currentHostel": "Hostel F (First Year Boys)",
-      "currentRoom": "101",
-      "currentRoommates": [
-        "Harsh Patel"
-      ],
-      "parentEmail": "parent.kabir@example.com",
-      "phone": "+91 99999 11223",
-      "address": "Sector 17, Chandigarh",
-      "verified": true,
-      "clusterId": null,
-      "allocationStatus": "FIRST_YEAR_ASSIGNED"
-    },
-    {
-      "role": "parent",
-      "fullName": "Mr. Ramesh Kansal",
-      "email": "ramesh.kansal@example.com",
-      "studentRollNumber": "1024160097",
-      "studentName": "Vaibhav Kansal",
-      "verified": true,
-      "id": "use-1792135227257-583"
+      "hostelName": "Hostel O",
+      "messName": "Hostel O Mess"
     }
   ],
-  "clusters": [
-    {
-      "id": "cluster-21",
-      "clusterNumber": 21,
-      "leaderId": "student-b",
-      "memberIds": [
-        "student-a",
-        "student-b",
-        "student-c",
-        "student-d"
-      ],
-      "memberRolls": [
-        "1024160097",
-        "1024160118",
-        "1024160138",
-        "1024160099"
-      ],
-      "gender": "Male",
-      "academicYear": 3,
-      "averageCgpa": 8.3,
-      "eligibleHostels": [
-        "Hostel M (Anantam Hall)",
-        "Hostel O",
-        "Hostel B",
-        "Hostel J",
-        "Hostel H"
-      ],
-      "preferences": [
-        {
-          "rank": 1,
-          "roomPairId": "rp-hostel-m-f2-p2",
-          "roomPairNumber": "M-203/204",
-          "hostelName": "Hostel M (Anantam Hall)"
-        },
-        {
-          "rank": 2,
-          "roomPairId": "rp-hostel-m-f2-p6",
-          "roomPairNumber": "M-211/212",
-          "hostelName": "Hostel M (Anantam Hall)"
-        },
-        {
-          "rank": 3,
-          "roomPairId": "rp-hostel-o-f1-p3",
-          "roomPairNumber": "O-105/106",
-          "hostelName": "Hostel O"
-        }
-      ],
-      "status": "FORMED",
-      "assignedRoomPairId": null,
-      "paymentStatus": "PENDING"
-    },
-    {
-      "id": "cluster-35",
-      "clusterNumber": 35,
-      "leaderId": "student-e",
-      "memberIds": [
-        "student-e"
-      ],
-      "memberRolls": [
-        "1024160035"
-      ],
-      "gender": "Male",
-      "academicYear": 3,
-      "averageCgpa": 8.7,
-      "eligibleHostels": [
-        "Hostel A (Agira Hall)",
-        "Hostel M (Anantam Hall)",
-        "Hostel O",
-        "Hostel B",
-        "Hostel J",
-        "Hostel H"
-      ],
-      "preferences": [
-        {
-          "rank": 1,
-          "roomPairId": "rp-hostel-m-f2-p2",
-          "roomPairNumber": "M-203/204",
-          "hostelName": "Hostel M (Anantam Hall)"
-        },
-        {
-          "rank": 2,
-          "roomPairId": "rp-hostel-a-f1-p1",
-          "roomPairNumber": "A-101/102",
-          "hostelName": "Hostel A (Agira Hall)"
-        },
-        {
-          "rank": 3,
-          "roomPairId": "rp-hostel-o-f1-p3",
-          "roomPairNumber": "O-105/106",
-          "hostelName": "Hostel O"
-        }
-      ],
-      "status": "FORMED",
-      "assignedRoomPairId": null,
-      "paymentStatus": "PENDING"
-    }
-  ],
+  "clusters": [],
   "studentPreferences": [],
-  "complaints": [
-    {
-      "id": "comp-101",
-      "type": "MAINTENANCE",
-      "category": "Electrical problems",
-      "studentId": "student-a",
-      "studentName": "Vaibhav Kansal",
-      "studentRollNumber": "1024160097",
-      "hostelName": "Hostel O",
-      "roomNumber": "102",
-      "description": "Ceiling fan regulator sparking and not turning off.",
-      "status": "UNDER_REVIEW",
-      "createdAt": "2026-09-11T10:30:00",
-      "caretakerNotes": "Electrician scheduled for afternoon inspection."
-    },
-    {
-      "type": "MAINTENANCE",
-      "category": "Plumbing issues",
-      "studentId": "student-a",
-      "studentName": "Vaibhav Kansal",
-      "studentRollNumber": "1024160097",
-      "hostelName": "Hostel O",
-      "roomNumber": "102",
-      "description": "Tap leaking continuously in Room 102 washroom",
-      "status": "RESOLVED",
-      "createdAt": "2026-10-16T07:20:27.194Z",
-      "id": "com-1792135227194-85",
-      "caretakerNotes": "Plumber assigned, repair underway."
-    }
-  ],
+  "complaints": [],
   "leaveRequests": [],
-  "localEntryRequests": [
-    {
-      "type": "LOCAL_ENTRY",
-      "studentId": "student-a",
-      "studentName": "Vaibhav Kansal",
-      "studentRollNumber": "1024160097",
-      "hostelName": "Hostel O",
-      "roomNumber": "102",
-      "date": "2026-09-15",
-      "startTime": "18:00",
-      "endTime": "22:00",
-      "reason": "Late lab experiment",
-      "parentApproval": "APPROVED",
-      "caretakerApproval": "APPROVED",
-      "status": "APPROVED",
-      "passId": "PASS-TEST-1792135227154",
-      "id": "loc-1792135227126-684"
-    },
-    {
-      "type": "LOCAL_ENTRY",
-      "studentId": "student-a",
-      "studentName": "Vaibhav Kansal",
-      "studentRollNumber": "1024160097",
-      "hostelName": "Hostel O",
-      "roomNumber": "102",
-      "date": "2026-09-16",
-      "startTime": "19:00",
-      "endTime": "23:30",
-      "reason": "Night outing",
-      "parentApproval": "APPROVED",
-      "caretakerApproval": "REJECTED",
-      "status": "REJECTED",
-      "passId": null,
-      "id": "loc-1792135227182-351"
-    }
-  ],
-  "passes": [
-    {
-      "id": "PASS-TEST-1792135227154",
-      "passType": "LOCAL_ENTRY",
-      "studentId": "student-a",
-      "studentName": "Vaibhav Kansal",
-      "studentRollNumber": "1024160097",
-      "hostel": "Hostel O",
-      "roomNumber": "102",
-      "date": "2026-09-15",
-      "startTime": "18:00",
-      "endTime": "22:00",
-      "purpose": "Late lab experiment",
-      "parentApproval": "Approved by Parent",
-      "caretakerApproval": "Approved by Caretaker",
-      "status": "ACTIVE",
-      "qrToken": "SHARP-QR-VALID",
-      "issuedAt": "2026-10-16T07:20:27.154Z"
-    }
-  ],
+  "localEntryRequests": [],
+  "passes": [],
   "messFeedback": [],
   "notifications": []
 }

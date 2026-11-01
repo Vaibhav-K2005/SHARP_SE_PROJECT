@@ -1,5 +1,17 @@
 import { db } from '../data/db.js';
 
+export function notifyRecipient(recipientRole, recipientId, message, title = 'SHARP update') {
+  if (!recipientRole || !recipientId) return null;
+  return db.insert('notifications', {
+    recipientRole,
+    recipientId,
+    title,
+    message,
+    timestamp: new Date().toISOString(),
+    read: false
+  });
+}
+
 export function notifyStudents(message, title = 'Allotment update', studentIds = null) {
   const recipients = studentIds ? new Set(studentIds) : null;
   const students = db.find('users', user =>

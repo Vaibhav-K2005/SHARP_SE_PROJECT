@@ -66,7 +66,9 @@ export class StudentPortal {
       { id: 'dashboard', icon: 'fa-gauge', label: 'Dashboard' },
       { id: 'profile', icon: 'fa-user', label: 'Profile' },
       { id: 'allocation', icon: 'fa-sitemap', label: 'Room Allocation', badge: this.getPhaseBadge() },
-      { id: 'hostel-info', icon: 'fa-hotel', label: 'Room & Hostel Info' }
+      { id: 'hostel-info', icon: 'fa-hotel', label: 'Room & Hostel Info' },
+      { id: 'complaints', icon: 'fa-screwdriver-wrench', label: 'Complaints' },
+      { id: 'mess', icon: 'fa-utensils', label: 'Mess Feedback' }
     ];
 
     if (!navItems.some(item => item.id === this.activeTab)) {
@@ -89,6 +91,14 @@ export class StudentPortal {
 
       <div class="portal-pane ${this.activeTab === 'hostel-info' ? 'active' : ''}" id="pane-hostel-info">
         ${this.renderHostelInfoSection()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="pane-complaints">
+        ${this.renderComplaintsSection()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'mess' ? 'active' : ''}" id="pane-mess">
+        ${this.renderMessSection()}
       </div>
     `;
 
@@ -154,7 +164,7 @@ export class StudentPortal {
         <div class="card-header">
           <div>
             <h3 class="card-title"><i class="fa-solid fa-bed"></i> Room Demo Actions</h3>
-            <p class="card-subtitle">Use these room-focused flows for the demo. Passes, entry requests, complaints, and mess feedback are hidden.</p>
+            <p class="card-subtitle">Track room information, submit complaints, and share anonymous feedback with your mess.</p>
           </div>
         </div>
         <div class="demo-action-grid two-up">
@@ -165,6 +175,14 @@ export class StudentPortal {
           <button class="btn btn-secondary btn-large-action" id="btn-goto-hostel-info">
             <i class="fa-solid fa-hotel" style="color: var(--info);"></i>
             <span>View Room & Hostel Info</span>
+          </button>
+          <button class="btn btn-secondary btn-large-action" id="btn-goto-complaints">
+            <i class="fa-solid fa-screwdriver-wrench" style="color: var(--warning);"></i>
+            <span>File or Track a Complaint</span>
+          </button>
+          <button class="btn btn-secondary btn-large-action" id="btn-goto-mess">
+            <i class="fa-solid fa-utensils" style="color: var(--primary);"></i>
+            <span>Give Mess Feedback</span>
           </button>
         </div>
       </div>
@@ -1013,7 +1031,10 @@ export class StudentPortal {
         <!-- Complaint History -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title"><i class="fa-solid fa-timeline"></i> Complaint History & Status</h3>
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-timeline"></i> Complaint History & Status</h3>
+              <p class="card-subtitle">Confirm completed repairs, reopen unresolved issues, or remind the caretaker after 3 days without progress.</p>
+            </div>
           </div>
           <div id="complaints-list-mount">
             <div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
@@ -1021,6 +1042,14 @@ export class StudentPortal {
         </div>
       </div>
     `;
+  }
+
+  canRemindCaretaker(complaint) {
+    if (['CLOSED', 'RESOLVED', 'AWAITING_STUDENT_CONFIRMATION'].includes(complaint.status)) return false;
+    const lastActivity = Date.parse(complaint.updatedAt || complaint.createdAt);
+    if (!Number.isFinite(lastActivity) || Date.now() - lastActivity < 3 * 24 * 60 * 60 * 1000) return false;
+    const lastReminder = complaint.lastReminderAt ? Date.parse(complaint.lastReminderAt) : 0;
+    return !lastReminder || Date.now() - lastReminder >= 24 * 60 * 60 * 1000;
   }
 
   async loadComplaints() {
@@ -1037,27 +1066,98 @@ export class StudentPortal {
         return;
       }
 
-      mount.innerHTML = complaints.map(c => `
-        <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <strong>${c.category}</strong>
-            <span class="status-pill ${c.status === 'RESOLVED' ? 'success' : (c.status === 'IN_PROGRESS' ? 'info' : 'warning')}">
-              ${c.status}
-            </span>
-          </div>
-          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">${c.description}</p>
-          ${c.caretakerNotes ? `
-            <div style="font-size: 0.75rem; color: var(--primary); background: var(--primary-glow); padding: 6px 10px; border-radius: var(--radius-sm);">
-              <i class="fa-solid fa-comment-dots"></i> Caretaker Note: ${c.caretakerNotes}
+      mount.innerHTML = complaints.map(c => {
+        const awaitingConfirmation = ['AWAITING_STUDENT_CONFIRMATION', 'RESOLVED'].includes(c.status);
+        const isClosed = c.status === 'CLOSED';
+        const displayStatus = awaitingConfirmation ? 'Awaiting your confirmation' : (isClosed ? 'Resolved by you' : c.status.replaceAll('_', ' '));
+        const statusClass = isClosed ? 'success' : (c.status === 'IN_PROGRESS' ? 'info' : 'warning');
+        const reminderCoolingDown = c.lastReminderAt && Date.now() - Date.parse(c.lastReminderAt) < 24 * 60 * 60 * 1000;
+
+        return `
+          <div style="background: var(--bg-card-hover); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong>${c.category}</strong>
+              <span class="status-pill ${statusClass}">${displayStatus}</span>
             </div>
-          ` : ''}
-          <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 6px;">
-            Lodged: ${new Date(c.createdAt).toLocaleString()}
+            <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 8px;">${c.description}</p>
+            ${c.caretakerNotes ? `
+              <div style="font-size: 0.75rem; color: var(--primary); background: var(--primary-glow); padding: 6px 10px; border-radius: var(--radius-sm);">
+                <i class="fa-solid fa-comment-dots"></i> Caretaker Note: ${c.caretakerNotes}
+              </div>
+            ` : ''}
+            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 6px;">
+              Lodged: ${new Date(c.createdAt).toLocaleString()}
+            </div>
+            ${awaitingConfirmation ? `
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px;">
+                <button class="btn btn-success btn-sm btn-confirm-complaint" data-id="${c.id}">Confirm resolved</button>
+                <button class="btn btn-secondary btn-sm btn-reopen-complaint" data-id="${c.id}">Still unresolved</button>
+              </div>
+            ` : ''}
+            ${!isClosed && !awaitingConfirmation && this.canRemindCaretaker(c) ? `
+              <button class="btn btn-secondary btn-sm btn-remind-caretaker" data-id="${c.id}" style="margin-top: 12px;">
+                <i class="fa-regular fa-bell"></i> Remind caretaker
+              </button>
+            ` : (reminderCoolingDown && !isClosed && !awaitingConfirmation ? `
+              <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 10px;">Reminder sent. You can remind the caretaker again after 24 hours.</div>
+            ` : '')}
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
+
+      mount.querySelectorAll('.btn-confirm-complaint').forEach(button => {
+        button.addEventListener('click', () => this.respondToComplaint(button.dataset.id, true));
+      });
+      mount.querySelectorAll('.btn-reopen-complaint').forEach(button => {
+        button.addEventListener('click', () => this.respondToComplaint(button.dataset.id, false));
+      });
+      mount.querySelectorAll('.btn-remind-caretaker').forEach(button => {
+        button.addEventListener('click', () => this.remindCaretaker(button.dataset.id));
+      });
     } catch (err) {
       mount.innerHTML = `<div class="error-msg">${err.message}</div>`;
+    }
+  }
+
+  async parseComplaintResponse(res) {
+    try {
+      return await res.json();
+    } catch {
+      throw new Error('The complaint service returned an invalid response. Stop and restart the server with `npm run dev` to load the latest complaint routes.');
+    }
+  }
+
+  async respondToComplaint(complaintId, resolved) {
+    try {
+      const res = await fetch('/api/complaints/student-resolution', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ complaintId, studentId: this.user.id, resolved })
+      });
+      const data = await this.parseComplaintResponse(res);
+      if (!res.ok) throw new Error(data.error || 'Could not update complaint resolution');
+
+      this.app.toast(resolved ? 'Complaint marked resolved.' : 'Complaint reopened for caretaker follow-up.', 'success');
+      await this.loadComplaints();
+    } catch (err) {
+      this.app.toast(err.message, 'danger');
+    }
+  }
+
+  async remindCaretaker(complaintId) {
+    try {
+      const res = await fetch('/api/complaints/remind-caretaker', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ complaintId, studentId: this.user.id })
+      });
+      const data = await this.parseComplaintResponse(res);
+      if (!res.ok) throw new Error(data.error || 'Could not remind caretaker');
+
+      this.app.toast(data.message, 'success');
+      await this.loadComplaints();
+    } catch (err) {
+      this.app.toast(err.message, 'danger');
     }
   }
 
@@ -1179,7 +1279,8 @@ export class StudentPortal {
     if (!mount) return;
 
     try {
-      const res = await fetch('/api/complaints/mess-feedback');
+      const messName = this.user.currentHostel ? `${this.user.currentHostel} Mess` : 'Main Mess';
+      const res = await fetch(`/api/complaints/mess-feedback?hostelName=${encodeURIComponent(messName)}`);
       const data = await res.json();
       const feedback = data.feedback || [];
 
@@ -1240,6 +1341,26 @@ export class StudentPortal {
         this.activeTab = 'hostel-info';
         this.render();
         this.attachEvents();
+      });
+    }
+
+    const btnGotoComplaints = document.getElementById('btn-goto-complaints');
+    if (btnGotoComplaints) {
+      btnGotoComplaints.addEventListener('click', () => {
+        this.activeTab = 'complaints';
+        this.render();
+        this.attachEvents();
+        this.loadComplaints();
+      });
+    }
+
+    const btnGotoMess = document.getElementById('btn-goto-mess');
+    if (btnGotoMess) {
+      btnGotoMess.addEventListener('click', () => {
+        this.activeTab = 'mess';
+        this.render();
+        this.attachEvents();
+        this.loadMessFeedback();
       });
     }
 
@@ -1601,8 +1722,8 @@ export class StudentPortal {
               mealType,
               category,
               rating,
+              studentId: this.user.id,
               comments,
-              hostelName: `${this.user.currentHostel} Mess`,
               anonymous: true
             })
           });

@@ -120,9 +120,19 @@ test('SHARP Workflow & Portal Logic Tests', async (t) => {
     });
     assert.strictEqual(db.findById('complaints', comp.id).status, 'IN_PROGRESS');
 
-    // Caretaker resolves
-    db.update('complaints', comp.id, { status: 'RESOLVED' });
-    assert.strictEqual(db.findById('complaints', comp.id).status, 'RESOLVED');
+    // Caretaker completes the work; the student, not the caretaker, closes it.
+    db.update('complaints', comp.id, { status: 'AWAITING_STUDENT_CONFIRMATION' });
+    assert.strictEqual(db.findById('complaints', comp.id).status, 'AWAITING_STUDENT_CONFIRMATION');
+
+    // Student reports the issue is still present; the same complaint is reopened.
+    db.update('complaints', comp.id, { status: 'REOPENED' });
+    assert.strictEqual(db.findById('complaints', comp.id).status, 'REOPENED');
+    assert.strictEqual(db.findById('complaints', comp.id).id, comp.id);
+
+    // Caretaker completes the repair again and the student confirms resolution.
+    db.update('complaints', comp.id, { status: 'AWAITING_STUDENT_CONFIRMATION' });
+    db.update('complaints', comp.id, { status: 'CLOSED', studentResolvedAt: new Date().toISOString() });
+    assert.strictEqual(db.findById('complaints', comp.id).status, 'CLOSED');
   });
 
   await t.test('Section 34: Parent Registration and Student Linking', () => {

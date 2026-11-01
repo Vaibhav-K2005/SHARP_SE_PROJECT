@@ -270,6 +270,36 @@ router.post('/register', (req, res) => {
     });
   }
 
+  if (role === 'mess_manager') {
+    const requestedMessName = req.body.messName?.trim();
+    if (!requestedMessName) {
+      return res.status(400).json({ error: 'Please select the mess assigned to this manager' });
+    }
+
+    const hostelName = requestedMessName.replace(/\s+Mess$/i, '').trim();
+    const hostel = db.findOne('hostels', item => item.name.toLowerCase() === hostelName.toLowerCase());
+    if (!hostel) {
+      return res.status(400).json({ error: 'Select a valid hostel mess' });
+    }
+
+    const newMessManager = db.insert('users', {
+      role: 'mess_manager',
+      fullName: fullName.trim(),
+      email: cleanEmail,
+      phone: phone?.trim() || '',
+      verified: true,
+      hostelId: hostel.id,
+      hostelName: hostel.name,
+      messName: `${hostel.name} Mess`
+    });
+
+    return res.json({
+      success: true,
+      user: newMessManager,
+      message: `Mess Manager ${newMessManager.fullName} registered for ${newMessManager.messName}!`
+    });
+  }
+
   // Admin / other
   const newUser = db.insert('users', {
     role,
@@ -324,6 +354,7 @@ router.get('/demo-users', (req, res) => {
     students: users.filter(u => u.role === 'student'),
     parents: users.filter(u => u.role === 'parent'),
     caretakers: users.filter(u => u.role === 'caretaker'),
+    messManagers: users.filter(u => u.role === 'mess_manager'),
     admins: users.filter(u => u.role === 'admin')
   });
 });
