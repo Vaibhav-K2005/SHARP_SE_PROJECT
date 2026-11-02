@@ -174,7 +174,7 @@ class SharpApp {
         <div class="demo-debug-menu" id="demo-debug-menu">
           ${pills.map((p, idx) => `
             <button class="demo-role-btn ${this.currentUser?.id === p.user?.id ? 'active' : ''}" data-idx="${idx}" title="Debug login as ${p.user.email}">
-              <span><i class="fa-solid ${p.icon}"></i> ${p.label}</span>
+              <span>${p.label}</span>
               <small>${p.user.email}</small>
             </button>
           `).join('')}
@@ -914,7 +914,7 @@ class SharpApp {
             <input type="text" id="parent-phone" class="form-input" placeholder="e.g. +91 94140 12345">
           </div>
 
-          <button class="btn btn-success" id="btn-parent-submit-final" style="width: 100%; margin-top: 10px;">
+          <button class="btn btn-primary" id="btn-parent-submit-final" style="width: 100%; margin-top: 10px;">
             <i class="fa-solid fa-user-plus"></i> Register Parent & Connect to Student
           </button>
         </div>
@@ -964,7 +964,7 @@ class SharpApp {
             </div>
           </div>
 
-          <button class="btn btn-warning" id="btn-caretaker-submit-final" style="width: 100%; margin-top: 10px; color: #000; font-weight: 800;">
+          <button class="btn btn-primary" id="btn-caretaker-submit-final" style="width: 100%; margin-top: 10px; font-weight: 800;">
             <i class="fa-solid fa-building-user"></i> Register Caretaker & Open Hostel Dashboard
           </button>
         </div>

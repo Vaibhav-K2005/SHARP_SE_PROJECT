@@ -19,6 +19,7 @@ export function renderPortalShell({
   userName = 'User',
   userSubtitle = '',
   navItems = [], // Array of { id, icon, label, badge }
+  showNavIcons = false,
   activeTab = 'dashboard',
   activeTabTitle = '',
   activeTabIcon = '',
@@ -55,7 +56,7 @@ export function renderPortalShell({
           <nav class="portal-sidebar-nav" role="navigation">
             ${navItems.map(item => `
               <button class="portal-tab-btn ${activeTab === item.id ? 'active' : ''}" data-tab="${item.id}" title="${item.label}">
-                <i class="fa-solid ${item.icon}"></i>
+                ${showNavIcons && item.icon ? `<i class="fa-solid ${item.icon}"></i>` : ''}
                 <span class="tab-label">${item.label}</span>
                 ${item.badge ? `<span class="tab-badge">${item.badge}</span>` : ''}
               </button>

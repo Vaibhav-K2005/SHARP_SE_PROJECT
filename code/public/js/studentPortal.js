@@ -289,11 +289,10 @@ export class StudentPortal {
           </div>
           <h2 style="margin-bottom: 10px;">Room Allotment Phase Not Started</h2>
           <p style="color: var(--text-secondary); max-width: 520px; margin: 0 auto 20px; line-height: 1.6; font-size: 0.95rem;">
-            The hostel caretaker / administration has <strong>not yet opened</strong> the room allotment window for ${sem.name || 'this semester'}.
-            Cluster formation, roommate pairing, and room preference submissions will be unlocked as soon as the caretaker begins the allotment phase.
+            The allotment window for <strong>${sem.name || 'this semester'}</strong> is not open yet. Cluster and room preferences will be available when it begins.
           </p>
           <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--warning-bg); border: 1px solid var(--warning-border); color: var(--warning); padding: 8px 18px; border-radius: 999px; font-size: 0.85rem;">
-            <i class="fa-solid fa-circle-pause"></i> Window Status: Closed (Awaiting Caretaker Initiation)
+            <i class="fa-solid fa-circle-pause"></i> Window closed
           </div>
         </div>
       `;
@@ -1006,15 +1005,15 @@ export class StudentPortal {
           <div class="form-group">
             <label class="form-label">Issue Category</label>
             <select id="comp-category" class="form-select">
-              <option value="Electrical problems">Electrical problems (fan, lights, socket)</option>
-              <option value="Plumbing issues">Plumbing issues (taps, flush, leakage)</option>
-              <option value="Fan/AC problems">Fan/AC cooling issues</option>
-              <option value="Furniture damage">Furniture damage (table, bed, cupboard)</option>
-              <option value="Bathroom problems">Bathroom problems</option>
-              <option value="Room problems">Room problems (doors, windows)</option>
-              <option value="Missing clothing item">Missing clothing item (Laundry)</option>
-              <option value="Damaged clothes">Damaged/stained clothes (Laundry)</option>
-              <option value="Other maintenance issues">Other maintenance issues</option>
+              <option value="Electrical problems" data-type="MAINTENANCE">Electrical problems (fan, lights, socket)</option>
+              <option value="Plumbing issues" data-type="MAINTENANCE">Plumbing issues (taps, flush, leakage)</option>
+              <option value="Fan/AC problems" data-type="MAINTENANCE">Fan/AC cooling issues</option>
+              <option value="Furniture damage" data-type="MAINTENANCE">Furniture damage (table, bed, cupboard)</option>
+              <option value="Bathroom problems" data-type="MAINTENANCE">Bathroom problems</option>
+              <option value="Room problems" data-type="MAINTENANCE">Room problems (doors, windows)</option>
+              <option value="Missing clothing item" data-type="LAUNDRY">Missing clothing item</option>
+              <option value="Damaged clothes" data-type="LAUNDRY">Damaged/stained clothes</option>
+              <option value="Other laundry issue" data-type="LAUNDRY">Other laundry issue</option>
             </select>
           </div>
 
@@ -1197,14 +1196,6 @@ export class StudentPortal {
           </ul>
         </div>
 
-        <div style="background: var(--bg-subtle); border: 1px solid var(--border-glow); border-radius: var(--radius-md); padding: 14px;">
-          <div style="font-weight: 700; font-size: 0.82rem; color: var(--primary); margin-bottom: 4px;">
-            <i class="fa-solid fa-circle-info"></i> Section 14 Transition Invariant
-          </div>
-          <p style="font-size: 0.78rem; color: var(--text-secondary); margin: 0;">
-            Students participate in semester allocation while continuing to live in their existing hostel. Only after final allocation is complete and payment is confirmed does the student's accommodation update.
-          </p>
-        </div>
       </div>
     `;
   }
@@ -1242,14 +1233,16 @@ export class StudentPortal {
           </div>
 
           <div class="form-group">
-            <label class="form-label">Rating (1 to 5 Stars)</label>
-            <select id="mess-rating" class="form-select">
-              <option value="5">\u2b50\u2b50\u2b50\u2b50\u2b50 Excellent (5/5)</option>
-              <option value="4" selected>\u2b50\u2b50\u2b50\u2b50 Good (4/5)</option>
-              <option value="3">\u2b50\u2b50\u2b50 Average (3/5)</option>
-              <option value="2">\u2b50\u2b50 Poor (2/5)</option>
-              <option value="1">\u2b50 Unsatisfactory (1/5)</option>
-            </select>
+            <label class="form-label" id="mess-rating-title">Your rating</label>
+            <input type="hidden" id="mess-rating" value="">
+            <div class="mess-star-rating" role="radiogroup" aria-labelledby="mess-rating-title">
+              ${[1, 2, 3, 4, 5].map(value => `
+                <button type="button" class="mess-star-button" data-rating="${value}" role="radio" aria-checked="false" aria-label="${value} out of 5 stars">
+                  <i class="fa-solid fa-star" aria-hidden="true"></i>
+                </button>
+              `).join('')}
+            </div>
+
           </div>
 
           <div class="form-group">
@@ -1663,6 +1656,18 @@ export class StudentPortal {
       });
     }
 
+    // Keep complaint categories relevant to the selected service.
+    const complaintType = document.getElementById('comp-type');
+    const complaintCategory = document.getElementById('comp-category');
+    const allComplaintCategories = Array.from(complaintCategory?.options || []);
+    const updateComplaintCategories = () => {
+      if (!complaintCategory) return;
+      const allowed = allComplaintCategories.filter(option => option.dataset.type === complaintType.value);
+      complaintCategory.replaceChildren(...allowed);
+    };
+    complaintType?.addEventListener('change', updateComplaintCategories);
+    updateComplaintCategories();
+
     // Submit Complaint
     const btnSubmitComp = document.getElementById('btn-submit-complaint');
     if (btnSubmitComp) {
@@ -1700,15 +1705,49 @@ export class StudentPortal {
       });
     }
 
+    const messRatingInput = document.getElementById('mess-rating');
+    const messStarButtons = Array.from(document.querySelectorAll('.mess-star-button'));
+    const setMessRating = rating => {
+      if (!messRatingInput) return;
+      messRatingInput.value = rating ? String(rating) : '';
+      messStarButtons.forEach(button => {
+        const selected = Number(button.dataset.rating) <= rating;
+        button.classList.toggle('selected', selected);
+        button.setAttribute('aria-checked', Number(button.dataset.rating) === rating ? 'true' : 'false');
+        button.tabIndex = Number(button.dataset.rating) === (rating || 1) ? 0 : -1;
+      });
+
+    };
+    messStarButtons.forEach(button => {
+      button.addEventListener('click', () => setMessRating(Number(button.dataset.rating)));
+      button.addEventListener('keydown', event => {
+        const current = Number(button.dataset.rating);
+        let next = current;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowUp') next = Math.min(5, current + 1);
+        else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') next = Math.max(1, current - 1);
+        else if (event.key === 'Home') next = 1;
+        else if (event.key === 'End') next = 5;
+        else return;
+        event.preventDefault();
+        setMessRating(next);
+        messStarButtons[next - 1].focus();
+      });
+    });
+    setMessRating(Number(messRatingInput?.value) || 0);
+
     // Submit Mess Feedback
     const btnSubmitMess = document.getElementById('btn-submit-mess');
     if (btnSubmitMess) {
       btnSubmitMess.addEventListener('click', async () => {
         const mealType = document.getElementById('mess-meal').value;
         const category = document.getElementById('mess-cat').value;
-        const rating = document.getElementById('mess-rating').value;
+        const rating = Number(document.getElementById('mess-rating').value);
         const comments = document.getElementById('mess-comments').value.trim();
 
+        if (!rating) {
+          this.app.toast('Please select a star rating', 'warning');
+          return;
+        }
         if (!comments) {
           this.app.toast('Please write a brief comment', 'warning');
           return;
@@ -1732,6 +1771,7 @@ export class StudentPortal {
 
           this.app.toast('Mess feedback submitted anonymously!', 'success');
           document.getElementById('mess-comments').value = '';
+          setMessRating(0);
           this.loadMessFeedback();
         } catch (err) {
           this.app.toast(err.message, 'danger');

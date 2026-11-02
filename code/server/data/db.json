@@ -148,7 +148,7 @@
       "capacity": 800,
       "occupied": 0,
       "status": "ACTIVE",
-      "caretakerId": null
+      "caretakerId": "use-1793561228123-886"
     },
     {
       "id": "hostel-b",
@@ -33320,14 +33320,93 @@
       "verified": true,
       "hostelName": "Hostel O",
       "messName": "Hostel O Mess"
+    },
+    {
+      "role": "student",
+      "fullName": "Vaibhav Kansal",
+      "rollNumber": "1024160097",
+      "email": "vkansal_be24@thapar.edu",
+      "academicYear": 3,
+      "admissionYear": 2024,
+      "course": "B.Tech Computer Science",
+      "gender": "Male",
+      "cgpa": 8.5,
+      "cgpaVerified": true,
+      "currentHostel": "Hostel O",
+      "currentRoom": "101",
+      "currentRoommates": [],
+      "parentName": "Pradeep Kumar",
+      "parentEmail": "pkumarin@yahoo.com",
+      "parentPhone": "9868129707",
+      "phone": "9643729707",
+      "address": "Noida",
+      "verified": true,
+      "clusterId": null,
+      "allocationStatus": "PRE_ALLOCATION",
+      "id": "use-1793561188600-41"
+    },
+    {
+      "role": "caretaker",
+      "fullName": "rajkumar",
+      "email": "o.ct@gmail.com",
+      "phone": "9876567876",
+      "verified": true,
+      "hostelId": "hostel-o",
+      "hostelName": "Hostel O",
+      "id": "use-1793561228123-886"
     }
   ],
   "clusters": [],
   "studentPreferences": [],
-  "complaints": [],
+  "complaints": [
+    {
+      "type": "MAINTENANCE",
+      "category": "Room problems",
+      "studentId": "use-1793561188600-41",
+      "studentName": "Vaibhav Kansal",
+      "studentRollNumber": "1024160097",
+      "hostelName": "Hostel O",
+      "roomNumber": "101",
+      "caretakerId": "use-1793561228123-886",
+      "description": "ytryh",
+      "status": "SUBMITTED",
+      "createdAt": "2026-11-01T19:27:28.028Z",
+      "caretakerNotes": "",
+      "id": "com-1793561248028-406",
+      "updatedAt": "2026-11-01T19:28:47.338Z"
+    }
+  ],
   "leaveRequests": [],
   "localEntryRequests": [],
   "passes": [],
   "messFeedback": [],
-  "notifications": []
+  "notifications": [
+    {
+      "recipientRole": "caretaker",
+      "recipientId": "use-1793561228123-886",
+      "title": "New maintenance complaint",
+      "message": "New maintenance complaint com-1793561248028-406 from Vaibhav Kansal requires review.",
+      "timestamp": "2026-11-01T19:27:28.042Z",
+      "read": false,
+      "id": "not-1793561248042-576"
+    },
+    {
+      "recipientRole": "caretaker",
+      "recipientId": "use-1793561228123-886",
+      "title": "Complaint assigned",
+      "message": "Complaint com-1793561248028-406 has been assigned to you.",
+      "timestamp": "2026-11-01T19:28:47.355Z",
+      "read": false,
+      "id": "not-1793561327356-530"
+    },
+    {
+      "id": "notif-1793561327373-0-90844",
+      "recipientRole": "student",
+      "recipientId": "use-1793561188600-41",
+      "title": "Complaint assigned",
+      "message": "Your complaint com-1793561248028-406 has been assigned to a caretaker.",
+      "timestamp": "2026-11-01T19:28:47.373Z",
+      "read": false
+    }
+  ]
 }

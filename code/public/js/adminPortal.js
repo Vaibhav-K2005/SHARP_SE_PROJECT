@@ -11,6 +11,8 @@ export class AdminPortal {
     this.rules = [];
     this.semesters = [];
     this.config = {};
+    this.complaints = [];
+    this.caretakers = [];
   }
 
   async init() {
@@ -21,13 +23,14 @@ export class AdminPortal {
 
   async fetchAllData() {
     try {
-      const [uRes, hRes, rpRes, rRes, sRes, cRes] = await Promise.all([
+      const [uRes, hRes, rpRes, rRes, sRes, cRes, complaintsRes] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/admin/hostels'),
         fetch('/api/admin/room-pairs'),
         fetch('/api/admin/eligibility-rules'),
         fetch('/api/admin/semesters'),
-        fetch('/api/admin/config')
+        fetch('/api/admin/config'),
+        fetch('/api/complaints/admin/queue')
       ]);
 
       const uData = await uRes.json();
@@ -36,6 +39,7 @@ export class AdminPortal {
       const rData = await rRes.json();
       const sData = await sRes.json();
       const cData = await cRes.json();
+      const complaintData = await complaintsRes.json();
 
       this.users = uData.users || [];
       this.hostels = hData.hostels || [];
@@ -43,6 +47,8 @@ export class AdminPortal {
       this.rules = rData.rules || [];
       this.semesters = sData.semesters || [];
       this.config = cData.config || {};
+      this.complaints = complaintData?.complaints || [];
+      this.caretakers = complaintData?.caretakers || [];
     } catch (err) {
       console.error('Failed to load admin data:', err);
     }
@@ -57,7 +63,8 @@ export class AdminPortal {
       { id: 'config', icon: 'fa-sliders', label: 'Allocation Config' },
       { id: 'semesters', icon: 'fa-calendar-days', label: 'Semester Management' },
       { id: 'hostels', icon: 'fa-building', label: 'Hostels & Room Suites' },
-      { id: 'users', icon: 'fa-users-gear', label: 'User Directory & CGPA' }
+      { id: 'users', icon: 'fa-users-gear', label: 'User Directory & CGPA' },
+      { id: 'complaints', icon: 'fa-triangle-exclamation', label: 'Complaints & SLA' }
     ];
 
     const contentHtml = `
@@ -80,6 +87,10 @@ export class AdminPortal {
 
       <div class="portal-pane ${this.activeTab === 'users' ? 'active' : ''}" id="adm-pane-users">
         ${this.renderUsersSection()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="adm-pane-complaints">
+        ${this.renderComplaintsSection()}
       </div>
     `;
 
@@ -350,6 +361,42 @@ export class AdminPortal {
   }
 
   // Section 45 & 5: User Management & CGPA Maintenance
+  renderComplaintsSection() {
+    const open = this.complaints.filter(item => item.status !== 'CLOSED');
+    const breached = open.filter(item => item.slaBreached);
+    return `
+      <div class="grid-3" style="margin-bottom: 18px;">
+        <div class="stat-widget"><div class="stat-content"><span class="stat-label">Open complaints</span><span class="stat-value">${open.length}</span></div></div>
+        <div class="stat-widget"><div class="stat-content"><span class="stat-label">SLA breached</span><span class="stat-value" style="color: var(--danger);">${breached.length}</span></div></div>
+        <div class="stat-widget"><div class="stat-content"><span class="stat-label">Closed</span><span class="stat-value">${this.complaints.length - open.length}</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3 class="card-title"><i class="fa-solid fa-screwdriver-wrench"></i> Complaint Oversight</h3>
+          <button class="btn btn-secondary btn-sm" id="btn-refresh-admin-complaints"><i class="fa-solid fa-rotate"></i> Refresh</button>
+        </div>
+        <div class="table-wrapper"><table class="table"><thead><tr><th>Issue</th><th>Student / Hostel</th><th>Status</th><th>SLA</th><th>Assigned caretaker</th><th>Action</th></tr></thead><tbody>
+          ${this.complaints.map(item => `
+            <tr>
+              <td><strong>${item.category}</strong><div style="font-size:.78rem;color:var(--text-secondary);">${item.type} · ${item.description}</div></td>
+              <td>${item.studentName || item.parentName || '—'}<div style="font-size:.78rem;color:var(--text-secondary);">${item.hostelName || '—'} · Room ${item.roomNumber || '—'}</div></td>
+              <td><span class="status-pill ${item.status === 'CLOSED' ? 'success' : (item.slaBreached ? 'danger' : 'warning')}">${item.status.replaceAll('_', ' ')}</span></td>
+              <td>${item.slaBreached ? '<span class="status-pill danger">Overdue</span>' : (item.status === 'CLOSED' ? 'Resolved' : (item.slaDeadline ? new Date(item.slaDeadline).toLocaleString() : 'No deadline'))}</td>
+              <td>${item.caretaker?.fullName || 'Unassigned'}</td>
+              <td>${item.status === 'CLOSED' ? '—' : `
+                <select class="form-select admin-complaint-caretaker" data-id="${item.id}" style="min-width:150px;">
+                  <option value="">Select caretaker</option>
+                  ${this.caretakers.filter(c => (c.hostelName || '').trim().toLowerCase() === (item.hostelName || '').trim().toLowerCase()).map(c => `<option value="${c.id}" ${item.caretakerId === c.id ? 'selected' : ''}>${c.fullName}</option>`).join('')}
+                </select>
+                <button class="btn btn-secondary btn-sm btn-assign-complaint" data-id="${item.id}" style="margin-top:5px;">Assign</button>
+              `}</td>
+            </tr>
+          `).join('') || '<tr><td colspan="6">No complaints have been submitted.</td></tr>'}
+        </tbody></table></div>
+        <p style="font-size:.78rem;color:var(--text-muted);margin-top:12px;">Open complaints have a 72-hour SLA. Overdue complaints are escalated once to administrator notifications.</p>
+      </div>
+    `;
+  }
+
   renderUsersSection() {
     return `
       <div class="card">
@@ -527,6 +574,37 @@ export class AdminPortal {
         }
       });
     }
+
+    const refreshComplaintQueue = async () => {
+      const res = await fetch('/api/complaints/admin/queue');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not load complaint queue');
+      this.complaints = data.complaints || [];
+      this.caretakers = data.caretakers || [];
+      this.render();
+      this.attachEvents();
+    };
+
+    document.getElementById('btn-refresh-admin-complaints')?.addEventListener('click', async () => {
+      try { await refreshComplaintQueue(); } catch (err) { this.app.toast(err.message, 'danger'); }
+    });
+
+    document.querySelectorAll('.btn-assign-complaint').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const select = document.querySelector(`.admin-complaint-caretaker[data-id="${btn.dataset.id}"]`);
+        if (!select?.value) { this.app.toast('Select a caretaker first.', 'warning'); return; }
+        try {
+          const res = await fetch('/api/complaints/admin/assign', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ complaintId: btn.dataset.id, caretakerId: select.value })
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Could not assign complaint');
+          this.app.toast('Complaint assigned to caretaker.', 'success');
+          await refreshComplaintQueue();
+        } catch (err) { this.app.toast(err.message, 'danger'); }
+      });
+    });
 
     // Save User CGPA
     document.querySelectorAll('.btn-save-user-cgpa').forEach(btn => {

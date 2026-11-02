@@ -2031,12 +2031,9 @@ body.theme-dark .airline-flight-deck {
   margin-top: 2px;
 }
 
-.airline-stat.available .airline-stat-value {
-  color: var(--success);
-}
-
+.airline-stat.available .airline-stat-value,
 .airline-stat.occupied .airline-stat-value {
-  color: var(--danger);
+  color: #000;
 }
 
 .airline-legend {
@@ -2167,15 +2164,15 @@ body.theme-dark .airline-flight-deck {
   font-size: 0.6rem;
   font-weight: 700;
   margin-top: 2px;
-  color: var(--success);
+  color: #000;
 }
 
 .floor-tab.active .floor-tab-avail {
-  color: rgba(255, 255, 255, 0.9);
+  color: #000;
 }
 
 .floor-tab-avail.full {
-  color: var(--danger) !important;
+  color: #000 !important;
 }
 
 .wing-filter-group {
@@ -3354,4 +3351,43 @@ body.theme-dark .portal-card-btn-reg {
   color: var(--text-primary);
   border-color: var(--primary);
   background: var(--bg-card-hover);
+}
+
+.mess-star-rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+
+.mess-star-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast), border-color var(--transition-fast);
+}
+
+.mess-star-button:hover,
+.mess-star-button.selected {
+  color: #facc15;
+  border-color: rgba(234, 179, 8, 0.45);
+  background: rgba(250, 204, 21, 0.12);
+}
+
+.mess-star-button:hover {
+  transform: translateY(-2px);
+}
+
+.mess-star-button:focus-visible {
+  outline: 3px solid var(--border-glow);
+  outline-offset: 2px;
 }

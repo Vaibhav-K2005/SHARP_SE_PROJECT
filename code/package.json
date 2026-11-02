@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "node server/server.js",
-    "test": "node --test tests/allocation.test.js tests/workflow.test.js tests/registration.test.js tests/mess-feedback.test.js"
+    "test": "node --test tests/allocation.test.js tests/workflow.test.js tests/registration.test.js tests/mess-feedback.test.js tests/complaints.test.js"
   },
   "keywords": [
     "hostel-management",

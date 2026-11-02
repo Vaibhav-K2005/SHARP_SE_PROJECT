@@ -72,6 +72,7 @@ export class CaretakerPortal {
       userName: this.user.fullName,
       userSubtitle: hostelName,
       navItems,
+      showNavIcons: false,
       activeTab: this.activeTab,
       rightActionsHtml: `<span class="badge badge-warning" style="font-size:0.75rem; font-weight:700;"><i class="fa-solid fa-hotel"></i> ${hostelName}</span>`,
       contentHtml

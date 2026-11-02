@@ -6,6 +6,7 @@ import { notifyRecipient, notifyStudents } from '../utils/notifications.js';
 const router = express.Router();
 const REMINDER_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 const REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+const COMPLAINT_SLA_MS = 72 * 60 * 60 * 1000;
 
 function normalizeHostel(name = '') {
   return name.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -14,8 +15,7 @@ function normalizeHostel(name = '') {
 function findCaretakerForHostel(hostelName) {
   const caretakers = db.find('users', user => user.role === 'caretaker');
   const normalizedHostel = normalizeHostel(hostelName);
-  return caretakers.find(user => normalizeHostel(user.hostelName) === normalizedHostel)
-    || (caretakers.length === 1 ? caretakers[0] : null);
+  return caretakers.find(user => normalizeHostel(user.hostelName) === normalizedHostel) || null;
 }
 
 function getComplaintCaretaker(complaint) {
@@ -29,6 +29,23 @@ function notifyCaretakerForComplaint(complaint, message, title) {
   complaint.caretakerId = caretaker.id;
   return notifyRecipient('caretaker', caretaker.id, message, title);
 }
+
+function escalateOverdueComplaints() {
+  const now = Date.now();
+  const admins = db.find('users', user => user.role === 'admin');
+  let changed = false;
+  db.getCollection('complaints').forEach(complaint => {
+    if (complaint.status === 'CLOSED' || !complaint.slaDeadline || complaint.slaEscalatedAt) return;
+    if (Date.parse(complaint.slaDeadline) > now) return;
+    complaint.slaEscalatedAt = new Date(now).toISOString();
+    changed = true;
+    admins.forEach(admin => notifyRecipient('admin', admin.id, `Complaint ${complaint.id} for ${complaint.hostelName} is overdue.`, 'Complaint SLA breached'));
+  });
+  if (changed) db.save();
+}
+
+const slaEscalationTimer = setInterval(escalateOverdueComplaints, 60 * 1000);
+slaEscalationTimer.unref();
 
 // 1. Submit Maintenance Complaint (Student)
 router.post('/maintenance', (req, res) => {
@@ -50,6 +67,9 @@ router.post('/maintenance', (req, res) => {
     description: description.trim(),
     status: 'SUBMITTED', // SUBMITTED -> UNDER_REVIEW -> IN_PROGRESS -> AWAITING_STUDENT_CONFIRMATION -> CLOSED
     createdAt: new Date().toISOString(),
+    updatedAt: null,
+    slaDeadline: new Date(Date.now() + COMPLAINT_SLA_MS).toISOString(),
+    slaEscalatedAt: null,
     caretakerNotes: ''
   });
   if (caretaker) {
@@ -79,6 +99,9 @@ router.post('/laundry', (req, res) => {
     description: description.trim(),
     status: 'SUBMITTED',
     createdAt: new Date().toISOString(),
+    updatedAt: null,
+    slaDeadline: new Date(Date.now() + COMPLAINT_SLA_MS).toISOString(),
+    slaEscalatedAt: null,
     caretakerNotes: ''
   });
   if (caretaker) {
@@ -217,10 +240,43 @@ router.get('/hostel/:hostelName', (req, res) => {
   const hostelName = normalizeHostel(req.params.hostelName);
   const caretakerId = req.query.caretakerId;
   const complaints = db.find('complaints', complaint =>
-    normalizeHostel(complaint.hostelName) === hostelName ||
-    (caretakerId && complaint.caretakerId === caretakerId)
+    normalizeHostel(complaint.hostelName) === hostelName &&
+    (!caretakerId || complaint.caretakerId === caretakerId)
   );
   res.json({ complaints });
+});
+
+// Admin oversight: return all complaints and notify administrators once when an open complaint breaches its SLA.
+router.get('/admin/queue', (req, res) => {
+  escalateOverdueComplaints();
+  const now = Date.now();
+  const complaints = db.getCollection('complaints');
+  const users = db.getCollection('users');
+  const results = complaints.map(complaint => ({
+    ...complaint,
+    caretaker: users.find(user => user.id === complaint.caretakerId) || null,
+    slaBreached: complaint.status !== 'CLOSED' && Boolean(complaint.slaDeadline) && Date.parse(complaint.slaDeadline) <= now
+  }));
+  res.json({ complaints: results, caretakers: users.filter(user => user.role === 'caretaker') });
+});
+
+router.post('/admin/assign', (req, res) => {
+  const { complaintId, caretakerId } = req.body;
+  const complaint = db.findById('complaints', complaintId);
+  if (!complaint) return res.status(404).json({ error: 'Complaint not found' });
+  if (complaint.status === 'CLOSED') return res.status(409).json({ error: 'Closed complaints cannot be reassigned' });
+  const caretaker = db.findById('users', caretakerId);
+  if (!caretaker || caretaker.role !== 'caretaker') return res.status(400).json({ error: 'Select a valid caretaker' });
+  if (normalizeHostel(caretaker.hostelName) !== normalizeHostel(complaint.hostelName)) {
+    return res.status(400).json({ error: 'Caretaker must be assigned to the complaint\'s hostel' });
+  }
+
+  complaint.caretakerId = caretaker.id;
+  complaint.updatedAt = new Date().toISOString();
+  db.save();
+  notifyRecipient('caretaker', caretaker.id, `Complaint ${complaint.id} has been assigned to you.`, 'Complaint assigned');
+  if (complaint.studentId) notifyStudents(`Your complaint ${complaint.id} has been assigned to a caretaker.`, 'Complaint assigned', [complaint.studentId]);
+  res.json({ success: true, complaint });
 });
 
 // 7. Mess Feedback Routes

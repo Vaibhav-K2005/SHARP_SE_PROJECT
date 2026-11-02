@@ -143,15 +143,7 @@ export class HostelMap {
               </div>
             </div>
           </div>
-          <div class="flight-deck-right">
-            <div class="airline-legend">
-              <div class="legend-chip available"><span class="legend-dot"></span> Available</div>
-              <div class="legend-chip pref1"><span class="legend-dot"></span> 1st Choice</div>
-              <div class="legend-chip pref2"><span class="legend-dot"></span> 2nd Choice</div>
-              <div class="legend-chip pref3"><span class="legend-dot"></span> 3rd Choice</div>
-              <div class="legend-chip occupied"><span class="legend-dot"></span> Occupied</div>
-            </div>
-          </div>
+
         </div>
 
         <!-- Floor Elevator Selector -->
