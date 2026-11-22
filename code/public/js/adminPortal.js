@@ -13,6 +13,7 @@ export class AdminPortal {
     this.config = {};
     this.complaints = [];
     this.caretakers = [];
+    this.pendingHomeLeaves = [];
   }
 
   async init() {
@@ -23,14 +24,15 @@ export class AdminPortal {
 
   async fetchAllData() {
     try {
-      const [uRes, hRes, rpRes, rRes, sRes, cRes, complaintsRes] = await Promise.all([
+      const [uRes, hRes, rpRes, rRes, sRes, cRes, complaintsRes, leavesRes] = await Promise.all([
         fetch('/api/admin/users'),
         fetch('/api/admin/hostels'),
         fetch('/api/admin/room-pairs'),
         fetch('/api/admin/eligibility-rules'),
         fetch('/api/admin/semesters'),
         fetch('/api/admin/config'),
-        fetch('/api/complaints/admin/queue')
+        fetch('/api/complaints/admin/queue'),
+        fetch('/api/leaves/admin/home-leaves')
       ]);
 
       const uData = await uRes.json();
@@ -40,6 +42,7 @@ export class AdminPortal {
       const sData = await sRes.json();
       const cData = await cRes.json();
       const complaintData = await complaintsRes.json();
+      const leaveData = await leavesRes.json();
 
       this.users = uData.users || [];
       this.hostels = hData.hostels || [];
@@ -49,6 +52,7 @@ export class AdminPortal {
       this.config = cData.config || {};
       this.complaints = complaintData?.complaints || [];
       this.caretakers = complaintData?.caretakers || [];
+      this.pendingHomeLeaves = leaveData.requests || [];
     } catch (err) {
       console.error('Failed to load admin data:', err);
     }
@@ -64,7 +68,8 @@ export class AdminPortal {
       { id: 'semesters', icon: 'fa-calendar-days', label: 'Semester Management' },
       { id: 'hostels', icon: 'fa-building', label: 'Hostels & Room Suites' },
       { id: 'users', icon: 'fa-users-gear', label: 'User Directory & CGPA' },
-      { id: 'complaints', icon: 'fa-triangle-exclamation', label: 'Complaints & SLA' }
+      { id: 'complaints', icon: 'fa-triangle-exclamation', label: 'Complaints & SLA' },
+            { id: 'leaves', icon: 'fa-plane-departure', label: 'Home Leave Approvals', badge: this.pendingHomeLeaves.length || null }
     ];
 
     const contentHtml = `
@@ -91,6 +96,9 @@ export class AdminPortal {
 
       <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="adm-pane-complaints">
         ${this.renderComplaintsSection()}
+      </div>
+      <div class="portal-pane ${this.activeTab === 'leaves' ? 'active' : ''}" id="adm-pane-leaves">
+        ${this.renderLeaveApprovalsSection()}
       </div>
     `;
 
@@ -361,6 +369,11 @@ export class AdminPortal {
   }
 
   // Section 45 & 5: User Management & CGPA Maintenance
+  renderLeaveApprovalsSection() {
+    return `<div class="card"><div class="card-header"><h3 class="card-title">Home Leave Approvals</h3><button class="btn btn-secondary btn-sm" id="btn-refresh-admin-leaves">Refresh</button></div>
+      ${this.pendingHomeLeaves.length ? this.pendingHomeLeaves.map(request => `<div style="padding:14px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;gap:12px;align-items:center;"><div><strong>${request.studentName}</strong><div style="font-size:.82rem;color:var(--text-secondary);">${request.fromDate} to ${request.toDate} · ${request.reason}</div></div><div><button class="btn btn-primary btn-sm btn-admin-leave-action" data-id="${request.id}" data-action="APPROVE">Approve & issue pass</button> <button class="btn btn-secondary btn-sm btn-admin-leave-action" data-id="${request.id}" data-action="REJECT">Reject</button></div></div>`).join('') : '<div class="empty-state">No home leave requests are awaiting approval.</div>'}</div>`;
+  }
+
   renderComplaintsSection() {
     const open = this.complaints.filter(item => item.status !== 'CLOSED');
     const breached = open.filter(item => item.slaBreached);
@@ -574,6 +587,11 @@ export class AdminPortal {
         }
       });
     }
+
+    document.getElementById('btn-refresh-admin-leaves')?.addEventListener('click', async () => { await this.fetchAllData(); this.render(); this.attachEvents(); });
+    document.querySelectorAll('.btn-admin-leave-action').forEach(btn => btn.addEventListener('click', async () => {
+      try { const res = await fetch('/api/leaves/home-leave/admin-action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ requestId: btn.dataset.id, action: btn.dataset.action, adminName: this.user.fullName }) }); const data = await res.json(); if (!res.ok) throw new Error(data.error); this.app.toast(btn.dataset.action === 'APPROVE' ? 'Leave approved and pass issued.' : 'Leave rejected.', 'success'); await this.fetchAllData(); this.render(); this.attachEvents(); } catch (err) { this.app.toast(err.message, 'danger'); }
+    }));
 
     const refreshComplaintQueue = async () => {
       const res = await fetch('/api/complaints/admin/queue');

@@ -6,6 +6,7 @@ import { ParentPortal } from './parentPortal.js';
 import { CaretakerPortal } from './caretakerPortal.js';
 import { AdminPortal } from './adminPortal.js';
 import { MessManagerPortal } from './messManagerPortal.js';
+import { LaundryPortal } from './laundryPortal.js';
 
 class SharpApp {
   constructor() {
@@ -127,6 +128,7 @@ class SharpApp {
     const parents = this.demoUsers.parents || [];
     const caretakers = this.demoUsers.caretakers || [];
     const messManagers = this.demoUsers.messManagers || [];
+    const laundryStaff = this.demoUsers.laundryStaff || [];
     const admins = this.demoUsers.admins || [];
 
     const pills = [];
@@ -144,6 +146,10 @@ class SharpApp {
     // Add registered mess managers
     messManagers.forEach(m => {
       pills.push({ label: `Mess Manager (${m.messName?.split(' ')[0] || m.fullName.split(' ')[0]})`, user: m, icon: 'fa-utensils' });
+    });
+
+    laundryStaff.forEach(staff => {
+      pills.push({ label: `Laundry Staff (${staff.hostelName?.split(' ')[0] || staff.fullName.split(' ')[0]})`, user: staff, icon: 'fa-shirt' });
     });
 
     // Add registered students
@@ -458,6 +464,8 @@ class SharpApp {
       this.currentPortalInstance = new AdminPortal(this, user);
     } else if (user.role === 'mess_manager') {
       this.currentPortalInstance = new MessManagerPortal(this, user);
+    } else if (user.role === 'laundry_staff') {
+      this.currentPortalInstance = new LaundryPortal(this, user);
     }
 
     if (this.currentPortalInstance) {
@@ -604,9 +612,10 @@ class SharpApp {
     const parents = this.demoUsers?.parents || [];
     const caretakers = this.demoUsers?.caretakers || [];
     const messManagers = this.demoUsers?.messManagers || [];
+    const laundryStaff = this.demoUsers?.laundryStaff || [];
     const admins = this.demoUsers?.admins || [];
 
-    const allUsers = [...admins, ...caretakers, ...messManagers, ...students, ...parents];
+    const allUsers = [...admins, ...caretakers, ...messManagers, ...laundryStaff, ...students, ...parents];
 
     let quickPicksHtml = '';
     if (allUsers.length > 0) {
@@ -636,6 +645,7 @@ class SharpApp {
           <option value="parent" ${initialRole === 'parent' ? 'selected' : ''}>Parent</option>
           <option value="caretaker" ${initialRole === 'caretaker' ? 'selected' : ''}>Hostel Caretaker</option>
           <option value="mess_manager" ${initialRole === 'mess_manager' ? 'selected' : ''}>Mess Manager</option>
+          <option value="laundry_staff" ${initialRole === 'laundry_staff' ? 'selected' : ''}>Laundry Staff</option>
           <option value="admin" ${initialRole === 'admin' ? 'selected' : ''}>Administrator (Board)</option>
         </select>
       </div>

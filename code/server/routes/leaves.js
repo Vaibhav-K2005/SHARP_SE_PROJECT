@@ -1,5 +1,7 @@
 // server/routes/leaves.js
 import express from 'express';
+import { randomUUID } from 'node:crypto';
+import QRCode from 'qrcode';
 import { db } from '../data/db.js';
 
 const router = express.Router();
@@ -21,6 +23,7 @@ router.post('/home-leave', (req, res) => {
     toDate,
     reason,
     parentApproval: 'PENDING',
+    adminApproval: 'PENDING',
     status: 'PENDING',
     createdAt: new Date().toISOString(),
     passId: null
@@ -90,30 +93,13 @@ router.post('/home-leave/parent-action', (req, res) => {
 
   if (action === 'APPROVE') {
     request.parentApproval = 'APPROVED';
-    request.status = 'APPROVED';
 
-    // Generate Digital Pass for home leave
-    const passId = `PASS-HOME-${Date.now().toString().slice(-4)}`;
-    const pass = db.insert('passes', {
-      id: passId,
-      passType: 'HOME_LEAVE',
-      studentId: request.studentId,
-      studentName: request.studentName,
-      studentRollNumber: request.studentRollNumber,
-      hostel: request.hostelName,
-      roomNumber: request.roomNumber,
-      date: `${request.fromDate} to ${request.toDate}`,
-      startTime: 'Departure',
-      endTime: 'Return',
-      purpose: `Home Leave: ${request.reason}`,
-      parentApproval: `Approved by Parent (${parentName || 'Verified Guardian'})`,
-      caretakerApproval: 'Verified by Hostel Caretaker',
-      status: 'ACTIVE',
-      qrToken: `SHARP-TOKEN-${passId}`,
-      issuedAt: new Date().toISOString()
-    });
-
-    request.passId = pass.id;
+    request.parentApprover = parentName || 'Verified Guardian';
+    request.status = 'PENDING_ADMIN';
+    db.find('users', user => user.role === 'admin').forEach(admin => db.insert('notifications', {
+      recipientRole: 'admin', recipientId: admin.id, title: 'Home leave approval required',
+      message: `${request.studentName} has a parent-approved home leave request to review.`, timestamp: new Date().toISOString(), read: false
+    }));
   } else {
     request.parentApproval = 'REJECTED';
     request.status = 'REJECTED';
@@ -121,6 +107,28 @@ router.post('/home-leave/parent-action', (req, res) => {
 
   db.save();
   res.json({ success: true, request });
+});
+
+// Admin / Warden review of a parent-approved home leave request.
+router.post('/home-leave/admin-action', (req, res) => {
+  const { requestId, action, adminName } = req.body;
+  const request = db.findById('leaveRequests', requestId);
+  if (!request) return res.status(404).json({ error: 'Request not found' });
+  if (request.parentApproval !== 'APPROVED' || request.status !== 'PENDING_ADMIN') return res.status(409).json({ error: 'This leave request is not awaiting admin approval' });
+  if (!['APPROVE', 'REJECT'].includes(action)) return res.status(400).json({ error: 'Choose APPROVE or REJECT' });
+  if (action === 'REJECT') {
+    request.adminApproval = 'REJECTED'; request.status = 'REJECTED'; db.save();
+    return res.json({ success: true, request });
+  }
+  request.adminApproval = 'APPROVED'; request.adminApprover = adminName || 'Hostel Administrator'; request.status = 'APPROVED';
+  const passId = `PASS-HOME-${Date.now().toString().slice(-4)}`;
+  const pass = db.insert('passes', { id: passId, passType: 'HOME_LEAVE', studentId: request.studentId, studentName: request.studentName, studentRollNumber: request.studentRollNumber, hostel: request.hostelName, roomNumber: request.roomNumber, date: `${request.fromDate} to ${request.toDate}`, startTime: 'Departure', endTime: 'Return', purpose: `Home Leave: ${request.reason}`, parentApproval: `Approved by Parent (${request.parentApprover || 'Parent'})`, adminApproval: `Approved by Admin (${request.adminApprover})`, status: 'ACTIVE', qrToken: randomUUID(), issuedAt: new Date().toISOString() });
+  request.passId = pass.id; db.save();
+  res.json({ success: true, request, pass });
+});
+
+router.get('/admin/home-leaves', (req, res) => {
+  res.json({ requests: db.find('leaveRequests', request => request.status === 'PENDING_ADMIN') });
 });
 
 // 4. Parent Review Local Entry Request (First part of dual approval)
@@ -188,10 +196,20 @@ function generateLocalEntryPass(request, parentName, caretakerName) {
     parentApproval: `Approved by Parent (${parentName || 'Parent'})`,
     caretakerApproval: `Approved by Caretaker (${caretakerName || 'Hostel Caretaker'})`,
     status: 'ACTIVE',
-    qrToken: `SHARP-TOKEN-${passId}`,
+    qrToken: randomUUID(),
     issuedAt: new Date().toISOString()
   });
 }
+
+// Render a scannable QR code for an issued pass. The QR payload is the pass's unique random token.
+router.get('/passes/:passId/qr', async (req, res, next) => {
+  try {
+    const pass = db.findById('passes', req.params.passId);
+    if (!pass || !pass.qrToken) return res.status(404).json({ error: 'Pass not found' });
+    const svg = await QRCode.toString(pass.qrToken, { type: 'svg', errorCorrectionLevel: 'M', margin: 1, width: 220 });
+    res.type('image/svg+xml').send(svg);
+  } catch (error) { next(error); }
+});
 
 // 6. Get Requests for Student
 router.get('/student/:studentId', (req, res) => {

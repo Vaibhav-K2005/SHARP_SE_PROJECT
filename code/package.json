@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "node server/server.js",
-    "test": "node --test tests/allocation.test.js tests/workflow.test.js tests/registration.test.js tests/mess-feedback.test.js tests/complaints.test.js"
+    "test": "node --test tests/allocation.test.js tests/workflow.test.js tests/registration.test.js tests/mess-feedback.test.js tests/complaints.test.js tests/leave-laundry.test.js"
   },
   "keywords": [
     "hostel-management",
@@ -21,6 +21,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^4.21.2",
-    "mongodb": "^7.6.0"
+    "mongodb": "^7.6.0",
+    "multer": "^2.5.0",
+    "qrcode": "^1.5.4"
   }
 }

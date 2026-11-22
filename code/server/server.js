@@ -25,6 +25,7 @@ app.use(express.json());
 
 // Serve static frontend assets
 app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);

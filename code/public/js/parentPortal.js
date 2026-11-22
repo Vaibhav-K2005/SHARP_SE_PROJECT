@@ -39,6 +39,7 @@ export class ParentPortal {
 
     const navItems = [
       { id: 'child-overview', icon: 'fa-child', label: 'Child Overview' },
+      { id: 'approvals', icon: 'fa-clipboard-check', label: 'Leave Approvals' },
       { id: 'report-caretaker', icon: 'fa-paper-plane', label: 'Report to Caretaker' }
     ];
 
@@ -50,6 +51,10 @@ export class ParentPortal {
       <!-- Content Panes -->
       <div class="portal-pane ${this.activeTab === 'child-overview' ? 'active' : ''}" id="parent-pane-overview">
         ${this.renderChildOverview()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'approvals' ? 'active' : ''}" id="parent-pane-approvals">
+        ${this.renderApprovalsSection()}
       </div>
 
       <div class="portal-pane ${this.activeTab === 'report-caretaker' ? 'active' : ''}" id="parent-pane-report">
@@ -474,6 +479,7 @@ export class ParentPortal {
         this.activeTab = 'report-caretaker';
         this.render();
         this.attachEvents();
+        if (tab === 'approvals') this.loadApprovals();
       });
     }
 

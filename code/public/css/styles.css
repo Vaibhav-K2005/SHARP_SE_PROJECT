@@ -1836,15 +1836,12 @@ body.theme-dark .pass-field-label {
   color: #0f172a;
 }
 
-.qr-code-mock {
-  width: 90px;
-  height: 90px;
-  background-image:
-    repeating-linear-gradient(0deg, #000, #000 3px, #fff 3px, #fff 6px),
-    repeating-linear-gradient(90deg, #000, #000 3px, #fff 3px, #fff 6px);
-  background-blend-mode: difference;
-  border: 4px solid #000;
+.pass-qr-image {
+  width: 104px;
+  height: 104px;
+  display: block;
   margin-bottom: 6px;
+  image-rendering: pixelated;
 }
 
 .qr-label {

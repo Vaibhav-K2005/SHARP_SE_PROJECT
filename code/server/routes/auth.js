@@ -355,6 +355,7 @@ router.get('/demo-users', (req, res) => {
     parents: users.filter(u => u.role === 'parent'),
     caretakers: users.filter(u => u.role === 'caretaker'),
     messManagers: users.filter(u => u.role === 'mess_manager'),
+    laundryStaff: users.filter(u => u.role === 'laundry_staff'),
     admins: users.filter(u => u.role === 'admin')
   });
 });

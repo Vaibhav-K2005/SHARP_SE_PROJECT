@@ -40,6 +40,7 @@ export class CaretakerPortal {
       { id: 'dashboard', icon: 'fa-chart-line', label: 'Dashboard' },
       { id: 'allocation-center', icon: 'fa-arrows-split-up-and-left', label: 'Room Allocation' },
       { id: 'hostel-map', icon: 'fa-hotel', label: 'Hostel Floor Plan Map' },
+      { id: 'local-entry', icon: 'fa-clipboard-check', label: 'Leave & Entry Approvals' },
       { id: 'complaints', icon: 'fa-screwdriver-wrench', label: 'Complaints' }
     ];
 
@@ -59,6 +60,10 @@ export class CaretakerPortal {
 
       <div class="portal-pane ${this.activeTab === 'hostel-map' ? 'active' : ''}" id="ct-pane-map">
         ${this.renderHostelMapSection(hostelName)}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'local-entry' ? 'active' : ''}" id="ct-pane-local-entry">
+        ${this.renderLocalEntrySection(hostelName)}
       </div>
 
       <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="ct-pane-complaints">

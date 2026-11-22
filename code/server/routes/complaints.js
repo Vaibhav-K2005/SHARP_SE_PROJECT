@@ -1,9 +1,24 @@
 // server/routes/complaints.js
 import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import multer from 'multer';
 import { db } from '../data/db.js';
 import { notifyRecipient, notifyStudents } from '../utils/notifications.js';
 
 const router = express.Router();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const uploadDirectory = path.join(__dirname, '../uploads');
+fs.mkdirSync(uploadDirectory, { recursive: true });
+const photoUpload = multer({
+  storage: multer.diskStorage({
+    destination: uploadDirectory,
+    filename: (req, file, callback) => callback(null, `${Date.now()}-${Math.random().toString(36).slice(2)}${path.extname(file.originalname).toLowerCase()}`)
+  }),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, callback) => callback(null, /^image\/(jpeg|png|webp)$/.test(file.mimetype))
+});
 const REMINDER_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
 const REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 const COMPLAINT_SLA_MS = 72 * 60 * 60 * 1000;
@@ -80,23 +95,25 @@ router.post('/maintenance', (req, res) => {
 });
 
 // 2. Submit Laundry Complaint (Student)
-router.post('/laundry', (req, res) => {
-  const { studentId, category, description } = req.body;
-  const student = db.findById('users', studentId);
-  if (!student || student.role !== 'student') return res.status(404).json({ error: 'Student not found' });
+router.post('/laundry', photoUpload.single('photo'), (req, res) => {
+  const { studentId, studentEmail, category, description } = req.body;
+  const student = db.findById('users', studentId)
+    || db.findOne('users', user => user.role === 'student' && user.email?.toLowerCase() === studentEmail?.trim().toLowerCase());
+  if (!student || student.role !== 'student') return res.status(404).json({ error: 'Student account not found. Refresh the portal and sign in again.' });
   if (!description?.trim()) return res.status(400).json({ error: 'Please describe the laundry issue' });
 
-  const caretaker = findCaretakerForHostel(student.currentHostel);
+  const laundryStaff = db.findOne('users', user => user.role === 'laundry_staff' && (!user.hostelName || normalizeHostel(user.hostelName) === normalizeHostel(student.currentHostel)));
   const complaint = db.insert('complaints', {
-    type: 'LAUNDRY',
+  type: 'LAUNDRY',
     category: category || 'Missing Clothing Item',
     studentId: student.id,
     studentName: student.fullName,
     studentRollNumber: student.rollNumber,
     hostelName: student.currentHostel,
     roomNumber: student.currentRoom,
-    caretakerId: caretaker?.id || null,
+    laundryStaffId: laundryStaff?.id || null,
     description: description.trim(),
+    photoUrl: req.file ? `/uploads/${req.file.filename}` : null,
     status: 'SUBMITTED',
     createdAt: new Date().toISOString(),
     updatedAt: null,
@@ -104,8 +121,8 @@ router.post('/laundry', (req, res) => {
     slaEscalatedAt: null,
     caretakerNotes: ''
   });
-  if (caretaker) {
-    notifyRecipient('caretaker', caretaker.id, `New laundry complaint ${complaint.id} from ${student.fullName} requires review.`, 'New laundry complaint');
+  if (laundryStaff) {
+    notifyRecipient('laundry_staff', laundryStaff.id, `New laundry issue ${complaint.id} from ${student.fullName} requires review.`, 'New laundry issue');
   }
 
   res.json({ success: true, complaint });
@@ -188,10 +205,14 @@ router.post('/student-resolution', (req, res) => {
   else complaint.reopenedAt = timestamp;
   db.save();
 
-  const caretakerMessage = resolved
+  const staffMessage = resolved
     ? `The student confirmed complaint ${complaint.id} is resolved.`
     : `The student reports complaint ${complaint.id} is still unresolved. Please follow up.`;
-  notifyCaretakerForComplaint(complaint, caretakerMessage, resolved ? 'Complaint confirmed resolved' : 'Complaint reopened');
+  if (complaint.type === 'LAUNDRY' && complaint.laundryStaffId) {
+    notifyRecipient('laundry_staff', complaint.laundryStaffId, staffMessage, resolved ? 'Laundry issue confirmed resolved' : 'Laundry issue reopened');
+  } else {
+    notifyCaretakerForComplaint(complaint, staffMessage, resolved ? 'Complaint confirmed resolved' : 'Complaint reopened');
+  }
   res.json({ success: true, complaint });
 });
 
@@ -226,6 +247,26 @@ router.post('/remind-caretaker', (req, res) => {
   db.save();
   notifyRecipient('caretaker', caretaker.id, `The student has sent a reminder for ${complaint.category.toLowerCase()} complaint ${complaint.id} in Room ${complaint.roomNumber || 'N/A'}.`, 'Complaint reminder');
   res.json({ success: true, complaint, message: 'A reminder was sent to the caretaker.' });
+});
+
+// Dedicated laundry staff queue and updates.
+router.get('/laundry/staff/:staffId', (req, res) => {
+  const staff = db.findById('users', req.params.staffId);
+  if (!staff || staff.role !== 'laundry_staff') return res.status(404).json({ error: 'Laundry staff member not found' });
+  res.json({ complaints: db.find('complaints', complaint => complaint.type === 'LAUNDRY' && complaint.laundryStaffId === staff.id) });
+});
+
+router.post('/laundry/update-status', (req, res) => {
+  const { complaintId, staffId, status, notes } = req.body;
+  const complaint = db.findById('complaints', complaintId);
+  const staff = db.findById('users', staffId);
+  if (!complaint || complaint.type !== 'LAUNDRY') return res.status(404).json({ error: 'Laundry issue not found' });
+  if (!staff || staff.role !== 'laundry_staff' || complaint.laundryStaffId !== staff.id) return res.status(403).json({ error: 'This issue is not assigned to you' });
+  const nextStatus = status === 'RESOLVED' ? 'AWAITING_STUDENT_CONFIRMATION' : status;
+  if (!['UNDER_REVIEW', 'IN_PROGRESS', 'REOPENED', 'AWAITING_STUDENT_CONFIRMATION'].includes(nextStatus)) return res.status(400).json({ error: 'Invalid laundry issue status' });
+  complaint.status = nextStatus; complaint.caretakerNotes = notes ?? complaint.caretakerNotes; complaint.updatedAt = new Date().toISOString(); db.save();
+  notifyStudents(nextStatus === 'AWAITING_STUDENT_CONFIRMATION' ? 'Your laundry issue is ready for confirmation.' : `Your laundry issue is now ${nextStatus.replaceAll('_', ' ').toLowerCase()}.`, 'Laundry issue updated', [complaint.studentId]);
+  res.json({ success: true, complaint });
 });
 
 // 5. Get Complaints for Student

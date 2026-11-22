@@ -319,6 +319,14 @@ export function getInitialData() {
         verified: true,
         hostelName: "Hostel O",
         messName: "Hostel O Mess"
+      },
+      {
+        id: "laundry-staff-o",
+        role: "laundry_staff",
+        fullName: "Laundry Desk Demo",
+        email: "laundry@thapar.edu",
+        verified: true,
+        hostelName: "Hostel O"
       }
     ],
 

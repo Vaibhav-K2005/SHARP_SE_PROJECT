@@ -67,7 +67,10 @@ export class StudentPortal {
       { id: 'profile', icon: 'fa-user', label: 'Profile' },
       { id: 'allocation', icon: 'fa-sitemap', label: 'Room Allocation', badge: this.getPhaseBadge() },
       { id: 'hostel-info', icon: 'fa-hotel', label: 'Room & Hostel Info' },
+      { id: 'requests', icon: 'fa-plane-departure', label: 'Leave Requests' },
+      { id: 'passes', icon: 'fa-ticket', label: 'Digital Passes' },
       { id: 'complaints', icon: 'fa-screwdriver-wrench', label: 'Complaints' },
+      { id: 'laundry', icon: 'fa-shirt', label: 'Laundry Issues' },
       { id: 'mess', icon: 'fa-utensils', label: 'Mess Feedback' }
     ];
 
@@ -93,8 +96,20 @@ export class StudentPortal {
         ${this.renderHostelInfoSection()}
       </div>
 
+      <div class="portal-pane ${this.activeTab === 'requests' ? 'active' : ''}" id="pane-requests">
+        ${this.renderRequestsSection()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'passes' ? 'active' : ''}" id="pane-passes">
+        ${this.renderPassesSection()}
+      </div>
+
       <div class="portal-pane ${this.activeTab === 'complaints' ? 'active' : ''}" id="pane-complaints">
         ${this.renderComplaintsSection()}
+      </div>
+
+      <div class="portal-pane ${this.activeTab === 'laundry' ? 'active' : ''}" id="pane-laundry">
+        ${this.renderLaundrySection()}
       </div>
 
       <div class="portal-pane ${this.activeTab === 'mess' ? 'active' : ''}" id="pane-mess">
@@ -771,7 +786,7 @@ export class StudentPortal {
         <div class="card-header">
           <h3 class="card-title"><i class="fa-solid fa-ticket"></i> Active Digital Passes</h3>
           <button class="btn btn-secondary btn-sm" id="btn-request-pass-quick">
-            <i class="fa-solid fa-plus"></i> Request New Pass
+            <i class="fa-solid fa-plus"></i> Request Leave / Entry
           </button>
         </div>
         <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 20px;">
@@ -831,7 +846,7 @@ export class StudentPortal {
             </div>
 
             <div class="pass-qr-box">
-              <div class="qr-code-mock"></div>
+              <img class="pass-qr-image" src="/api/leaves/passes/${encodeURIComponent(p.id)}/qr" alt="Scannable QR code for ${p.id}">
               <span class="qr-label">${p.qrToken.slice(-10)}</span>
             </div>
           </div>
@@ -839,7 +854,7 @@ export class StudentPortal {
           <div class="pass-footer">
             <div class="pass-stamps">
               <span class="approval-stamp"><i class="fa-solid fa-check-double"></i> ${p.parentApproval}</span>
-              <span class="approval-stamp"><i class="fa-solid fa-check-double"></i> ${p.caretakerApproval}</span>
+              <span class="approval-stamp"><i class="fa-solid fa-check-double"></i> ${p.adminApproval || p.caretakerApproval}</span>
             </div>
             <button class="btn btn-secondary btn-sm" onclick="window.print()" style="font-size: 0.72rem; padding: 3px 8px;">
               <i class="fa-solid fa-print"></i> Print
@@ -1041,6 +1056,83 @@ export class StudentPortal {
         </div>
       </div>
     `;
+  }
+
+  renderLaundrySection() {
+    return `
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><h3 class="card-title">Report a Laundry Issue</h3></div>
+          <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:16px;">Report missing, damaged, stained, incorrect, or delayed laundry. Your issue is sent to Laundry Staff.</p>
+          <div class="form-group"><label class="form-label">Issue category</label><select id="laundry-category" class="form-select"><option value="Missing clothing item">Missing clothing item</option><option value="Damaged clothes">Damaged or stained clothes</option><option value="Incorrect laundry">Incorrect laundry received</option><option value="Delayed laundry">Delayed laundry</option><option value="Other laundry issue">Other issue</option></select></div>
+          <div class="form-group"><label class="form-label">Description</label><textarea id="laundry-description" class="form-textarea" placeholder="Describe the item, collection date, and issue..."></textarea></div>
+          <div class="form-group"><label class="form-label">Photo evidence (optional)</label><div style="display:flex;gap:8px;flex-wrap:wrap;"><label class="btn btn-secondary btn-sm" for="laundry-photo-file">Upload photo<input id="laundry-photo-file" type="file" accept="image/jpeg,image/png,image/webp" hidden></label><button type="button" class="btn btn-secondary btn-sm" id="btn-laundry-camera">Use camera</button><input id="laundry-photo-camera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" hidden><span id="laundry-photo-name" style="font-size:.78rem;color:var(--text-muted);align-self:center;">No photo selected</span></div><p style="font-size:.72rem;color:var(--text-muted);margin:7px 0 0;">JPEG, PNG, or WebP up to 5 MB.</p></div>
+          <button class="btn btn-primary" id="btn-submit-laundry" style="width:100%;">Submit Laundry Issue</button>
+        </div>
+        <div class="card"><div class="card-header"><div><h3 class="card-title">Laundry Issue History</h3><p class="card-subtitle">Track updates from Laundry Staff and confirm when resolved.</p></div></div><div id="laundry-issues-list"><div class="loading-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div></div></div>
+      </div>`;
+  }
+
+  async loadLaundryIssues() {
+    const mount = document.getElementById('laundry-issues-list');
+    if (!mount) return;
+    try {
+      const res = await fetch(`/api/complaints/student/${this.user.id}`);
+      const data = await res.json();
+      const issues = (data.complaints || []).filter(item => item.type === 'LAUNDRY');
+      if (!issues.length) { mount.innerHTML = '<div class="empty-state">No laundry issues reported yet.</div>'; return; }
+      mount.innerHTML = issues.map(issue => {
+        const awaiting = ['AWAITING_STUDENT_CONFIRMATION', 'RESOLVED'].includes(issue.status);
+        return `<div style="background:var(--bg-card-hover);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:14px;margin-bottom:12px;"><div style="display:flex;justify-content:space-between;gap:8px;"><strong>${issue.category}</strong><span class="status-pill ${issue.status === 'CLOSED' ? 'success' : 'warning'}">${awaiting ? 'Awaiting confirmation' : issue.status.replaceAll('_', ' ')}</span></div><p style="font-size:.84rem;margin:8px 0;">${issue.description}</p>${issue.photoUrl ? `<a href="${issue.photoUrl}" target="_blank" rel="noopener"><img src="${issue.photoUrl}" alt="Photo submitted with laundry issue" style="width:92px;height:92px;object-fit:cover;border-radius:var(--radius-sm);border:1px solid var(--border-color);"></a>` : ''}${issue.caretakerNotes ? `<div style="font-size:.78rem;color:var(--text-secondary);">Laundry Staff: ${issue.caretakerNotes}</div>` : ''}${awaiting ? `<div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-success btn-sm btn-laundry-confirm" data-id="${issue.id}">Confirm resolved</button><button class="btn btn-secondary btn-sm btn-laundry-reopen" data-id="${issue.id}">Still unresolved</button></div>` : ''}</div>`;
+      }).join('');
+      mount.querySelectorAll('.btn-laundry-confirm').forEach(button => button.addEventListener('click', () => this.respondToLaundryIssue(button.dataset.id, true)));
+      mount.querySelectorAll('.btn-laundry-reopen').forEach(button => button.addEventListener('click', () => this.respondToLaundryIssue(button.dataset.id, false)));
+    } catch (error) { mount.innerHTML = `<div class="error-msg">${error.message}</div>`; }
+  }
+
+  async respondToLaundryIssue(complaintId, resolved) {
+    try {
+      const res = await fetch('/api/complaints/student-resolution', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ complaintId, studentId: this.user.id, resolved }) });
+      const data = await this.parseComplaintResponse(res); if (!res.ok) throw new Error(data.error || 'Could not update laundry issue');
+      this.app.toast(resolved ? 'Laundry issue marked resolved.' : 'Laundry issue reopened.', 'success'); await this.loadLaundryIssues();
+    } catch (error) { this.app.toast(error.message, 'danger'); }
+  }
+
+  async openLaundryCamera(onCapture) {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      document.getElementById('laundry-photo-camera')?.click();
+      return;
+    }
+
+    let stream;
+    const stopCamera = () => stream?.getTracks().forEach(track => track.stop());
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      this.app.openModal('Take Laundry Issue Photo', `
+        <p style="font-size:.84rem;color:var(--text-secondary);margin-bottom:12px;">Position the issue clearly in the camera frame, then capture the photo.</p>
+        <video id="laundry-camera-preview" autoplay playsinline style="width:100%;border-radius:var(--radius-md);background:#111;"></video>
+      `, [
+        { label: 'Capture photo', class: 'btn-primary', onClick: () => {
+          const video = document.getElementById('laundry-camera-preview');
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(blob => {
+            if (!blob) { this.app.toast('Could not capture the photo. Please try again.', 'danger'); return; }
+            onCapture(new File([blob], `laundry-photo-${Date.now()}.jpg`, { type: 'image/jpeg' }));
+            stopCamera(); this.app.closeModal();
+          }, 'image/jpeg', 0.9);
+        } },
+        { label: 'Cancel', class: 'btn-secondary', onClick: () => { stopCamera(); this.app.closeModal(); } }
+      ]);
+      const video = document.getElementById('laundry-camera-preview');
+      video.srcObject = stream;
+      this.app.modalClose?.addEventListener('click', stopCamera, { once: true });
+      this.app.modalOverlay?.addEventListener('click', event => { if (event.target === this.app.modalOverlay) stopCamera(); }, { once: true });
+    } catch (error) {
+      stopCamera();
+      this.app.toast('Camera access was unavailable. Check browser permission, then try again.', 'warning');
+    }
   }
 
   canRemindCaretaker(complaint) {
@@ -1313,7 +1405,9 @@ export class StudentPortal {
         this.attachEvents();
 
         if (tab === 'requests') this.loadRequestsHistory();
+        if (tab === 'passes') this.loadPasses();
         if (tab === 'complaints') this.loadComplaints();
+        if (tab === 'laundry') this.loadLaundryIssues();
         if (tab === 'mess') this.loadMessFeedback();
       });
     });
@@ -1574,6 +1668,13 @@ export class StudentPortal {
       });
     }
 
+    document.getElementById('btn-request-pass-quick')?.addEventListener('click', () => {
+      this.activeTab = 'requests';
+      this.render();
+      this.attachEvents();
+      this.loadRequestsHistory();
+    });
+
     // Toggle Request Type
     const reqTypeSelect = document.getElementById('req-type');
     if (reqTypeSelect) {
@@ -1734,6 +1835,38 @@ export class StudentPortal {
       });
     });
     setMessRating(Number(messRatingInput?.value) || 0);
+
+    const laundryPhotoInputs = [document.getElementById('laundry-photo-file'), document.getElementById('laundry-photo-camera')];
+    let laundryPhoto = null;
+    const selectLaundryPhoto = photo => {
+      laundryPhoto = photo;
+      document.getElementById('laundry-photo-name').textContent = photo.name;
+      laundryPhotoInputs.forEach(input => { if (input) input.value = ''; });
+    };
+    laundryPhotoInputs.forEach(input => input?.addEventListener('change', () => {
+      if (input.files?.[0]) selectLaundryPhoto(input.files[0]);
+    }));
+    document.getElementById('btn-laundry-camera')?.addEventListener('click', () => this.openLaundryCamera(selectLaundryPhoto));
+    document.getElementById('btn-submit-laundry')?.addEventListener('click', async () => {
+      const category = document.getElementById('laundry-category')?.value;
+      const description = document.getElementById('laundry-description')?.value.trim();
+      if (!description) { this.app.toast('Please describe the laundry issue', 'warning'); return; }
+      if (laundryPhoto && laundryPhoto.size > 5 * 1024 * 1024) { this.app.toast('Photo must be 5 MB or smaller', 'warning'); return; }
+      try {
+        const formData = new FormData();
+        formData.append('studentId', this.user.id); formData.append('studentEmail', this.user.email || ''); formData.append('category', category); formData.append('description', description);
+        if (laundryPhoto) formData.append('photo', laundryPhoto);
+        const res = await fetch('/api/complaints/laundry', { method: 'POST', body: formData });
+        const data = await res.json(); if (!res.ok) throw new Error(data.error);
+        if (data.complaint.studentId !== this.user.id) {
+          this.user = { ...this.user, id: data.complaint.studentId };
+          this.app.currentUser = this.user;
+          localStorage.setItem('sharp-currentUser', JSON.stringify(this.user));
+        }
+        this.app.toast(data.complaint.laundryStaffId ? 'Laundry issue sent to Laundry Staff.' : 'Laundry issue submitted. Staff assignment is pending.', 'success');
+        document.getElementById('laundry-description').value = ''; laundryPhoto = null; laundryPhotoInputs.forEach(input => { if (input) input.value = ''; }); document.getElementById('laundry-photo-name').textContent = 'No photo selected'; await this.loadLaundryIssues();
+      } catch (error) { this.app.toast(error.message, 'danger'); }
+    });
 
     // Submit Mess Feedback
     const btnSubmitMess = document.getElementById('btn-submit-mess');

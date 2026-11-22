@@ -22,6 +22,7 @@ class Database {
   async init() {
     const fileData = this.loadFromFile();
     this.data = fileData || getInitialData();
+    this.ensureLaundryStaffDemoAccount();
 
     const mongoUri = process.env.MONGODB_URI;
     if (mongoUri) {
@@ -51,6 +52,19 @@ class Database {
     if (!fileData && !this.mongoCollection) {
       this.saveToFile();
     }
+  }
+
+  ensureLaundryStaffDemoAccount() {
+    const users = this.data?.users || [];
+    if (users.some(user => user.role === 'laundry_staff')) return;
+    users.push({
+      id: 'laundry-staff-o',
+      role: 'laundry_staff',
+      fullName: 'Laundry Desk Demo',
+      email: 'laundry@thapar.edu',
+      verified: true,
+      hostelName: 'Hostel O'
+    });
   }
 
   loadFromFile() {
